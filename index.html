@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Firebase SDK (버전 8.10.1 - 호환성 최적화) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -54,7 +54,8 @@
         <!-- 1. 로그인 화면 -->
         <section id="view-login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg fade-in mt-8 border-t-4 border-amber-500">
             <div class="text-center mb-8">
-                <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">역사1 형성평가</span>
+                <!-- [수정] 문구 변경 -->
+                <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full">용신중학교 역사교사 방재석</span>
                 <h2 class="text-2xl font-bold serif text-stone-900 mt-3">당신의 역사 실력은?</h2>
                 <p class="text-red-500 font-bold text-sm mt-2"><i class="fas fa-stopwatch mr-1"></i> 제한시간 60초 (5문제)</p>
             </div>
@@ -110,9 +111,15 @@
                     <!-- 정답 입력란 -->
                 </div>
 
-                <button onclick="app.submitAnswer()" class="w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md">
-                    다음 문제 <i class="fas fa-chevron-right ml-1"></i>
-                </button>
+                <!-- [수정] 버튼 영역: 이전 / 다음 -->
+                <div class="flex gap-3 mt-auto">
+                    <button id="btn-prev" onclick="app.prevQuestion()" class="hidden w-1/3 bg-stone-200 text-stone-700 font-bold py-4 rounded-lg hover:bg-stone-300 transition shadow-sm">
+                        <i class="fas fa-chevron-left mr-1"></i> 이전
+                    </button>
+                    <button id="btn-next" onclick="app.submitAnswer()" class="w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md">
+                        다음 문제 <i class="fas fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -182,7 +189,7 @@
                             <tr><th class="p-3">시간</th><th class="p-3">정보</th><th class="p-3">점수</th><th class="p-3">상태</th></tr>
                         </thead>
                         <tbody id="teacher-log-body" class="bg-white">
-                            <tr><td colspan="4" class="p-4 text-center text-stone-400">데이터를 불러오려면 새로고침 버튼을 누르세요.</td></tr>
+                            <tr><td colspan="4" class="p-4 text-center text-stone-400">데이터를 불러오는 중...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -296,6 +303,7 @@
             { id: 50, type: "choice", question: "나폴레옹이 전파한 사상?", answer: "자유주의", options: ["왕권신수설", "자유주의", "복고주의", "전체주의"], explanation: "혁명 정신." }
         ];
 
+        /* 앱 로직 */
         const app = {
             state: { student:{}, questions:[], allQuestions:[], currentIndex:0, answers:{}, score:0, isTeacherMode:false, timer:null, timeLeft:60, isTimeOut:false, customBank:[], logs:[] },
             
@@ -337,14 +345,30 @@
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
                 document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'빈칸','word':'단답','order':'순서'}[q.type] || '문제';
                 document.getElementById('question-text').innerText = q.question;
-                const area = document.getElementById('answer-area'); area.innerHTML = ''; this.tempAnswer = null;
+                const area = document.getElementById('answer-area'); area.innerHTML = ''; 
+                this.tempAnswer = this.state.answers[q.id] || null; // Restore previous answer if exists
                 
+                // Show/Hide Previous Button
+                const btnPrev = document.getElementById('btn-prev');
+                if (this.state.currentIndex === 0) btnPrev.classList.add('hidden');
+                else btnPrev.classList.remove('hidden');
+
                 if(q.type === 'choice') {
                     const grid = document.createElement('div'); grid.className="grid grid-cols-1 gap-3";
                     q.options.forEach((opt,i) => {
                         const btn = document.createElement('button');
-                        btn.className = "w-full text-left p-4 rounded border border-stone-200 hover:bg-stone-50 bg-white";
-                        btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-stone-200 inline-flex items-center justify-center text-xs font-bold mr-3">${i+1}</span> ${opt}`;
+                        // 기본 스타일
+                        let baseClass = "w-full text-left p-4 rounded border border-stone-200 bg-white";
+                        let innerSpanClass = "w-6 h-6 rounded-full bg-stone-200 inline-flex items-center justify-center text-xs font-bold mr-3";
+                        
+                        // 이미 선택된 답안인 경우 스타일 적용
+                        if (this.tempAnswer === opt) {
+                            baseClass = "w-full text-left p-4 rounded border-2 border-amber-600 bg-amber-600 text-white font-bold shadow-sm";
+                            innerSpanClass = "w-6 h-6 rounded-full bg-white text-amber-600 inline-flex items-center justify-center text-xs font-bold mr-3";
+                        }
+
+                        btn.className = baseClass;
+                        btn.innerHTML = `<span class="${innerSpanClass}">${i+1}</span> ${opt}`;
                         btn.onclick = () => {
                             Array.from(grid.children).forEach(c => {
                                 c.className = "w-full text-left p-4 rounded border border-stone-200 bg-white";
@@ -359,9 +383,37 @@
                     area.appendChild(grid);
                 } else if(q.type === 'order') {
                     this.orderTemp = [];
+                    // 이미 답한 내용이 있으면 파싱해서 복구
+                    if (this.tempAnswer) {
+                        this.orderTemp = this.tempAnswer.split('-');
+                    }
+
                     const box = document.createElement('div'); box.className="border-2 dashed border-amber-300 rounded p-4 mb-3 bg-amber-50 min-h-[50px] flex flex-wrap gap-2";
                     const opts = document.createElement('div'); opts.className="flex flex-wrap gap-2";
+                    
+                    // 정답 박스에 이미 선택된 항목 먼저 추가
+                    this.orderTemp.forEach(opt => {
+                        const btn = document.createElement('button'); 
+                        btn.className="px-3 py-2 bg-amber-600 text-white border rounded shadow-sm"; 
+                        btn.innerText=opt;
+                        btn.onclick = () => {
+                            // 클릭 시 다시 아래로 내려감 (삭제)
+                            opts.appendChild(btn); 
+                            btn.classList.remove('bg-amber-600','text-white');
+                            this.orderTemp = this.orderTemp.filter(x=>x!==opt);
+                        };
+                        box.appendChild(btn);
+                    });
+
+                    // 보기 박스에 선택되지 않은 항목 추가
                     q.options.sort(()=>0.5-Math.random()).forEach(opt => {
+                        // 이미 위쪽에 있으면 건너뜀
+                        if (this.orderTemp.includes(opt)) {
+                             // 대신 아래쪽 박스에 안보이게 넣거나, 아래쪽 박스에 넣은 뒤 숨기는 로직 등이 필요하지만
+                             // 간단하게: 순서 맞추기는 로직이 복잡해지므로, 그냥 아래쪽에 생성하되 클릭하면 위로 이동하는 기본 로직 사용.
+                             // *수정*: 복구 로직이 복잡하므로, 이미 선택된 것은 위에, 안된 것은 아래에 둡니다.
+                             return; 
+                        }
                         const btn = document.createElement('button'); btn.className="px-3 py-2 bg-white border rounded shadow-sm"; btn.innerText=opt;
                         btn.onclick = () => {
                             if(btn.parentElement===opts) { box.appendChild(btn); btn.classList.add('bg-amber-600','text-white'); this.orderTemp.push(opt); }
@@ -369,21 +421,57 @@
                         };
                         opts.appendChild(btn);
                     });
+                    
+                    // 복구된 항목들에 대해서도 클릭 이벤트가 필요하므로 위쪽 루프 수정
+                    // (위쪽 루프에서 생성된 버튼들도 다시 내려갈 수 있어야 함)
+                    // 복잡성을 줄이기 위해, 재렌더링 시 this.orderTemp가 있으면 그것으로 box를 채웁니다.
+                    // 위 코드 흐름상 orderTemp에 있는건 box에, 없는건 opts에 넣는 로직으로 정리됨.
+
                     area.append(box, opts);
                 } else {
                     const inp = document.createElement('input'); inp.type="text"; inp.className="w-full p-4 border-b-2 border-stone-300 focus:border-amber-500 text-center text-lg outline-none";
-                    inp.placeholder="정답 입력"; inp.oninput = (e) => this.tempAnswer=e.target.value;
+                    inp.placeholder="정답 입력"; 
+                    if(this.tempAnswer) inp.value = this.tempAnswer; // 값 복구
+                    inp.oninput = (e) => this.tempAnswer=e.target.value;
                     inp.onkeydown = (e) => { if(e.key==='Enter') this.submitAnswer(); };
                     area.appendChild(inp);
                 }
             },
+            
+            // [추가] 이전 문제 함수
+            prevQuestion: function() {
+                // 현재 입력된 답이 있으면 저장해둠 (선택사항이지만 UX상 좋음)
+                // 단, 순서맞추기는 처리가 복잡하므로, 일단 '이전' 누르면 현재 문제는 저장 안하고 넘어가는 것으로 처리하거나
+                // 현재 로직상 this.tempAnswer가 있으면 저장.
+                if (this.tempAnswer) {
+                    if (this.state.questions[this.state.currentIndex].type === 'order') {
+                         if (this.orderTemp && this.orderTemp.length > 0) {
+                             this.state.answers[this.state.questions[this.state.currentIndex].id] = this.orderTemp.join('-');
+                         }
+                    } else {
+                        this.state.answers[this.state.questions[this.state.currentIndex].id] = this.tempAnswer;
+                    }
+                }
+
+                if (this.state.currentIndex > 0) {
+                    this.state.currentIndex--;
+                    this.renderQuestion();
+                }
+            },
+
             submitAnswer: function() {
                 const q = this.state.questions[this.state.currentIndex];
                 let ans = this.tempAnswer;
+                
+                // 순서 맞추기의 경우 orderTemp 사용
                 if(q.type==='order') {
+                    // 다음 문제로 넘어갈 때는 완성 여부 체크
                     if(!this.orderTemp || this.orderTemp.length !== q.options.length) { alert("순서를 완성하세요"); return; }
                     ans = this.orderTemp.join('-');
-                } else if(!ans) { alert("정답을 입력하세요"); return; }
+                } else {
+                    if(!ans) { alert("정답을 입력하세요"); return; }
+                }
+                
                 this.state.answers[q.id] = ans;
                 if(this.state.currentIndex < 4) { this.state.currentIndex++; this.renderQuestion(); }
                 else this.finishQuiz();
