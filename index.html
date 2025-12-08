@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025학년도 2학기 역사과 형성평가 (최종_완성)</title>
+    <title>2025 역사과 형성평가 (최종_수정_완료)</title>
     
     <!-- 필수 라이브러리 -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -35,6 +35,7 @@
             gap: 6px;
             cursor: pointer;
             border: 1px solid #57534e;
+            z-index: 9999; /* 최상단 보장 */
         }
         .teacher-btn:hover { background-color: #292524; }
     </style>
@@ -45,10 +46,10 @@
     <header class="bg-stone-900 text-white py-4 shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <h1 class="text-lg md:text-xl font-bold tracking-tight">
-                <i class="fas fa-history text-amber-500 mr-2"></i>용신중학교 2학년 역사과
+                <i class="fas fa-history text-amber-500 mr-2"></i>역사과 타임어택
             </h1>
-            <!-- 교사용 버튼 -->
-            <button onclick="openTeacherMode()" class="teacher-btn">
+            <!-- 교사용 버튼 (ID 부여하여 JS에서 직접 제어) -->
+            <button id="btn-teacher-mode" class="teacher-btn">
                 <i class="fas fa-lock"></i> 교사용
             </button>
         </div>
@@ -59,8 +60,8 @@
         <!-- 1. 로그인 화면 -->
         <section id="view-login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg fade-in mt-8 border-t-4 border-amber-500">
             <div class="text-center mb-8">
-                <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">용신중학교 2학기 역사1 형성평가</span>
-                <h2 class="text-2xl font-bold serif text-stone-900 mt-2">당신의 역사 수준은?</h2>
+                <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">2차 지필평가 대비</span>
+                <h2 class="text-2xl font-bold serif text-stone-900 mt-2">역사 핵심정리 평가</h2>
                 <p class="text-red-500 font-bold text-sm mt-2"><i class="fas fa-stopwatch mr-1"></i> 제한시간 60초 (5문제)</p>
             </div>
             
@@ -149,7 +150,7 @@
                 </div>
             </div>
 
-            <!-- 오답노트 (숨김) -->
+            <!-- 오답노트 -->
             <div id="review-section" class="hidden mt-6 bg-white p-6 rounded-xl shadow-lg border border-red-200">
                 <h3 class="font-bold text-lg mb-4 text-red-600 border-b pb-2"><i class="fas fa-check-circle"></i> 오답 확인</h3>
                 <div id="review-list" class="space-y-4 text-left"></div>
@@ -201,7 +202,7 @@
         // 선생님 구글 시트 URL
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9MZkDDhyerj2jHKC7PPD8arMR86u9aiBhCKCn5_yabZL9WJv5zygH1Lb15cg70EJFQg/exec";
 
-        /* 문제 은행 (50문항 - 검수 완료) */
+        /* 문제 은행 (50문항) */
         const questionBank = [
             // I. 고대
             { id: 1, type: "choice", question: "아테네 민주 정치가 절정에 달했던 시기의 지도자는?", answer: "페리클레스", options: ["페리클레스", "알렉산드로스", "카이사르", "솔론"], explanation: "페리클레스 시대에 직접 민주주의가 완성되었습니다." },
@@ -284,13 +285,19 @@
                 isTimeOut: false
             },
 
+            // 초기화 시 버튼 이벤트 리스너 강제 등록
             init: function() {
                 try {
+                    const btnTeacher = document.getElementById('btn-teacher-mode');
+                    if (btnTeacher) {
+                        btnTeacher.addEventListener('click', function() {
+                            app.toggleTeacherMode();
+                        });
+                    }
                     this.renderBank();
-                } catch(e) { console.error(e); }
+                } catch(e) { console.error("초기화 오류:", e); }
             },
 
-            // 교사용 모드 토글 (전역 함수에서 호출됨)
             toggleTeacherMode: function() {
                 if (this.state.isTeacherMode) {
                     this.closeTeacherMode();
@@ -484,6 +491,7 @@
 
                 this.state.questions.forEach(q => {
                     const userAns = this.state.answers[q.id] || "";
+                    // 공백 제거 후 비교
                     const normUser = userAns.toString().replace(/\s+/g, '').trim();
                     const normAns = q.answer.toString().replace(/\s+/g, '').trim();
                     
@@ -509,30 +517,27 @@
                 this.saveLog();
             },
 
-            // 구글 시트 전송 로직 (URLSearchParams + no-cors) - 핵심 수정!
+            // 구글 시트 전송 로직 (FormData + no-cors) - 최종 해결책
             submitData: function() {
                 const status = document.getElementById('submission-status');
                 
-                // FormData 대신 URLSearchParams 사용 (호환성 UP)
-                const params = new URLSearchParams();
-                params.append('class', this.state.student.class);
-                params.append('number', this.state.student.number);
-                params.append('name', this.state.student.name);
-                params.append('score', this.state.score);
-                params.append('wrong_count', this.state.incorrectDetails.length);
-                if(this.state.isTimeOut) params.append('note', '시간초과');
+                // 1. FormData 객체 생성 (가장 호환성 좋음)
+                const formData = new FormData();
+                formData.append('class', this.state.student.class);
+                formData.append('number', this.state.student.number);
+                formData.append('name', this.state.student.name);
+                formData.append('score', this.state.score);
+                formData.append('wrong_count', this.state.incorrectDetails.length);
+                if(this.state.isTimeOut) formData.append('note', '시간초과');
 
-                // 전송
+                // 2. Fetch 전송 (no-cors 모드: 응답을 확인하지 않고 전송만 함)
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // CORS 우회 (필수)
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: params.toString()
+                    mode: 'no-cors', 
+                    body: formData
                 })
                 .then(() => {
-                    // 성공 처리
+                    // no-cors는 성공/실패 상태코드를 주지 않으므로 전송 시도만 성공하면 완료로 간주
                     status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold";
                     status.innerHTML = '<i class="fas fa-check-circle"></i> 선생님께 제출 완료!';
                 })
@@ -631,18 +636,8 @@
             }
         };
 
-        // 안전한 교사용 버튼 실행을 위한 전역 함수
-        function openTeacherMode() {
-            if (window.app) {
-                app.toggleTeacherMode();
-            } else {
-                alert("앱이 아직 로딩 중입니다. 1초 뒤에 다시 시도해주세요.");
-            }
-        }
-
-        // 초기화
+        // window.onload는 가장 마지막에 실행되어야 안전함
         window.onload = function() {
-            window.app = app; // 전역 app 설정
             app.init();
         };
     </script>
