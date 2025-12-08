@@ -3,21 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025학년도 2학기 역사과 형성평가 (최종_수정)</title>
+    <title>2025학년도 2학기 역사과 형성평가 (최종_완성)</title>
     
     <!-- 필수 라이브러리 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- 오류 감지 스크립트 -->
-    <script>
-        window.onerror = function(msg, url, line, col, error) {
-            alert("시스템 오류가 발생했습니다.\n내용: " + msg + "\n라인: " + line);
-            return false;
-        };
-    </script>
 
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #f5f5f4; }
@@ -30,23 +22,21 @@
         .timer-urgent { background-color: #ef4444 !important; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* 교사용 버튼 스타일 강화 */
+        /* 교사용 버튼 */
         .teacher-btn {
-            background-color: #44403c; /* Stone 700 */
+            background-color: #44403c;
             color: white;
             padding: 8px 12px;
             border-radius: 8px;
             font-size: 0.85rem;
             font-weight: bold;
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 6px;
             cursor: pointer;
             border: 1px solid #57534e;
         }
-        .teacher-btn:hover { background-color: #292524; transform: translateY(-1px); }
-        .teacher-btn:active { transform: translateY(1px); }
+        .teacher-btn:hover { background-color: #292524; }
     </style>
 </head>
 <body class="text-stone-800 min-h-screen flex flex-col">
@@ -57,8 +47,8 @@
             <h1 class="text-lg md:text-xl font-bold tracking-tight">
                 <i class="fas fa-history text-amber-500 mr-2"></i>역사과 타임어택
             </h1>
-            <!-- 교사용 버튼 크기 확대 및 스타일 개선 -->
-            <button onclick="if(window.app) app.toggleTeacherMode(); else alert('로딩중입니다. 잠시만 기다려주세요.');" class="teacher-btn">
+            <!-- 교사용 버튼 -->
+            <button onclick="openTeacherMode()" class="teacher-btn">
                 <i class="fas fa-lock"></i> 교사용
             </button>
         </div>
@@ -227,7 +217,7 @@
             // II. 중세
             { id: 10, type: "choice", question: "중세 봉건제에서 주군이 봉신에게 하사한 토지를 무엇이라 하는가?", answer: "봉토", options: ["봉토", "장원", "화폐", "면벌부"], explanation: "토지를 매개로 한 계약 관계였습니다." },
             { id: 11, type: "blank", question: "중세 장원에 속박되어 영주의 땅을 경작하던 농민을 [ _____ ]라고 한다.", answer: "농노", explanation: "거주 이전의 자유가 없는 반자유민입니다." },
-            { id: 12, type: "word", question: "황제가 교황에게 파문을 취소해달라고 빈 사건은? (ㅋㄴㅅ의 굴욕)", answer: "카노사의 굴욕", explanation: "교황권이 황제권보다 강해지는 계기였습니다." },
+            { id: 12, type: "word", question: "황제가 교황에게 용서를 빈 사건은? (ㅋㄴㅅ의 굴욕)", answer: "카노사의 굴욕", explanation: "교황권이 황제권보다 강해지는 계기였습니다." },
             { id: 13, type: "choice", question: "십자군 전쟁의 결과로 옳은 것은?", answer: "교황권 쇠퇴", options: ["교황권 강화", "교황권 쇠퇴", "장원제 강화", "무역 쇠퇴"], explanation: "전쟁 실패로 교황 권위가 추락했습니다." },
             { id: 14, type: "choice", question: "신앙과 이성의 조화를 추구한 중세 서유럽의 철학은?", answer: "스콜라 철학", options: ["스콜라 철학", "경험주의", "실존주의", "계몽 사상"], explanation: "아퀴나스가 대표적입니다." },
             { id: 15, type: "blank", question: "스콜라 철학을 집대성한 인물은 토마스 [ _____ ]이다.", answer: "아퀴나스", explanation: "'신학 대전'을 저술했습니다." },
@@ -295,30 +285,25 @@
             },
 
             init: function() {
-                // DOM 로드 후 안전하게 실행
                 try {
                     this.renderBank();
-                } catch(e) {
-                    console.error("초기화 중 오류:", e);
-                }
+                } catch(e) { console.error(e); }
             },
 
+            // 교사용 모드 토글 (전역 함수에서 호출됨)
             toggleTeacherMode: function() {
                 if (this.state.isTeacherMode) {
                     this.closeTeacherMode();
                     return;
                 }
-                // 안전한 프롬프트 실행
-                setTimeout(() => {
-                    const pw = prompt("교사용 비밀번호를 입력하세요:");
-                    if (pw === '0423') {
-                        this.state.isTeacherMode = true;
-                        this.showView('view-teacher');
-                        this.renderLogs();
-                    } else if (pw !== null) {
-                        alert("비밀번호가 일치하지 않습니다.");
-                    }
-                }, 50);
+                const pw = prompt("교사용 비밀번호를 입력하세요:");
+                if (pw === '0423') { 
+                    this.state.isTeacherMode = true;
+                    this.showView('view-teacher');
+                    this.renderLogs();
+                } else if (pw !== null) {
+                    alert("비밀번호가 일치하지 않습니다.");
+                }
             },
 
             closeTeacherMode: function() {
@@ -344,9 +329,8 @@
 
                 this.state.student = { class: cls, number: num, name: name };
                 
-                // 랜덤 섞기
                 const shuffled = this.shuffleArray([...questionBank]);
-                this.state.questions = shuffled.slice(0, 5);
+                this.state.questions = shuffled.slice(0, 5); 
                 
                 this.state.currentIndex = 0;
                 this.state.answers = {};
@@ -419,12 +403,12 @@
                         btn.className = "w-full text-left p-4 rounded border border-stone-200 hover:bg-stone-50 transition flex items-center bg-white text-stone-800";
                         btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-xs font-bold mr-3">${idx+1}</span> ${opt}`;
                         btn.onclick = (e) => {
-                            // 선택 초기화
+                            // 모든 버튼 초기화
                             Array.from(grid.children).forEach(c => {
                                 c.className = "w-full text-left p-4 rounded border border-stone-200 hover:bg-stone-50 transition flex items-center bg-white text-stone-800";
                                 c.querySelector('span').className = "w-6 h-6 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-xs font-bold mr-3";
                             });
-                            // 선택 활성화 (배경색 + 흰색 글씨)
+                            // 선택된 버튼 스타일 (진한 배경 + 흰색 글씨)
                             btn.className = "w-full text-left p-4 rounded border-2 border-amber-600 bg-amber-600 text-white flex items-center font-bold shadow-sm transform scale-[1.02] transition-all";
                             btn.querySelector('span').className = "w-6 h-6 rounded-full bg-white text-amber-600 flex items-center justify-center text-xs font-bold mr-3";
                             this.tempAnswer = opt;
@@ -500,7 +484,6 @@
 
                 this.state.questions.forEach(q => {
                     const userAns = this.state.answers[q.id] || "";
-                    // 공백 제거 후 비교
                     const normUser = userAns.toString().replace(/\s+/g, '').trim();
                     const normAns = q.answer.toString().replace(/\s+/g, '').trim();
                     
@@ -526,24 +509,30 @@
                 this.saveLog();
             },
 
+            // 구글 시트 전송 로직 (URLSearchParams + no-cors) - 핵심 수정!
             submitData: function() {
                 const status = document.getElementById('submission-status');
                 
-                const formData = new FormData();
-                formData.append('class', this.state.student.class);
-                formData.append('number', this.state.student.number);
-                formData.append('name', this.state.student.name);
-                formData.append('score', this.state.score);
-                formData.append('wrong_count', this.state.incorrectDetails.length);
-                if(this.state.isTimeOut) formData.append('note', '시간초과');
+                // FormData 대신 URLSearchParams 사용 (호환성 UP)
+                const params = new URLSearchParams();
+                params.append('class', this.state.student.class);
+                params.append('number', this.state.student.number);
+                params.append('name', this.state.student.name);
+                params.append('score', this.state.score);
+                params.append('wrong_count', this.state.incorrectDetails.length);
+                if(this.state.isTimeOut) params.append('note', '시간초과');
 
-                // Google Apps Script 전송 (no-cors)
+                // 전송
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    body: formData,
-                    mode: 'no-cors'
+                    mode: 'no-cors', // CORS 우회 (필수)
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params.toString()
                 })
                 .then(() => {
+                    // 성공 처리
                     status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold";
                     status.innerHTML = '<i class="fas fa-check-circle"></i> 선생님께 제출 완료!';
                 })
@@ -642,7 +631,18 @@
             }
         };
 
+        // 안전한 교사용 버튼 실행을 위한 전역 함수
+        function openTeacherMode() {
+            if (window.app) {
+                app.toggleTeacherMode();
+            } else {
+                alert("앱이 아직 로딩 중입니다. 1초 뒤에 다시 시도해주세요.");
+            }
+        }
+
+        // 초기화
         window.onload = function() {
+            window.app = app; // 전역 app 설정
             app.init();
         };
     </script>
