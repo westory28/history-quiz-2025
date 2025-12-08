@@ -218,7 +218,7 @@
             // II. 중세
             { id: 10, type: "choice", question: "중세 봉건제에서 주군이 봉신에게 하사한 토지를 무엇이라 하는가?", answer: "봉토", options: ["봉토", "장원", "화폐", "면벌부"], explanation: "토지를 매개로 한 계약 관계였습니다." },
             { id: 11, type: "blank", question: "중세 장원에 속박되어 영주의 땅을 경작하던 농민을 [ _____ ]라고 한다.", answer: "농노", explanation: "거주 이전의 자유가 없는 반자유민입니다." },
-            { id: 12, type: "word", question: "황제가 교황에게 용서를 빈 사건은? (ㅋㄴㅅ의 굴욕)", answer: "카노사의 굴욕", explanation: "교황권이 황제권보다 강해지는 계기였습니다." },
+            { id: 12, type: "word", question: "황제가 교황에게 파문을 취소해달라고 빈 사건은? (ㅋㄴㅅ의 굴욕)", answer: "카노사의 굴욕", explanation: "교황권이 황제권보다 강해지는 계기였습니다." },
             { id: 13, type: "choice", question: "십자군 전쟁의 결과로 옳은 것은?", answer: "교황권 쇠퇴", options: ["교황권 강화", "교황권 쇠퇴", "장원제 강화", "무역 쇠퇴"], explanation: "전쟁 실패로 교황 권위가 추락했습니다." },
             { id: 14, type: "choice", question: "신앙과 이성의 조화를 추구한 중세 서유럽의 철학은?", answer: "스콜라 철학", options: ["스콜라 철학", "경험주의", "실존주의", "계몽 사상"], explanation: "아퀴나스가 대표적입니다." },
             { id: 15, type: "blank", question: "스콜라 철학을 집대성한 인물은 토마스 [ _____ ]이다.", answer: "아퀴나스", explanation: "'신학 대전'을 저술했습니다." },
@@ -537,7 +537,7 @@
                     body: formData
                 })
                 .then(() => {
-                    // no-cors는 성공/실패 상태코드를 주지 않으므로 전송 시도만 성공하면 완료로 간주
+                    // no-cors는 성공 여부를 정확히 알 수 없으나 에러가 안 나면 전송된 것으로 간주
                     status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold";
                     status.innerHTML = '<i class="fas fa-check-circle"></i> 선생님께 제출 완료!';
                 })
