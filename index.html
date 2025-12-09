@@ -34,22 +34,18 @@
         }
         .teacher-btn:hover { background-color: #292524; }
 
-        /* 모달 스타일 */
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
-        /* [수정] 테이블 구분선 강화 스타일 */
         .admin-table th, .admin-table td {
             border-bottom: 1px solid #e5e7eb;
             vertical-align: middle;
         }
-        /* 세로 구분선 추가 */
         .admin-table th:not(:last-child), 
         .admin-table td:not(:last-child) {
-            border-right: 2px solid #d6d3d1; /* 진한 회색 선으로 구분 강화 */
+            border-right: 2px solid #d6d3d1; 
         }
-        /* 정답 열 강조 */
         .col-answer {
-            background-color: #fffbeb; /* 연한 노란색 배경 */
+            background-color: #fffbeb; 
             color: #b45309;
             font-weight: bold;
         }
@@ -218,16 +214,21 @@
 
             <!-- 탭 2: 문제 은행 -->
             <div id="tab-bank" class="hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
-                    <p class="text-xs text-stone-400">* 문제를 클릭하면 수정할 수 있습니다.</p>
+                <div class="flex justify-between items-center mb-4 bg-stone-50 p-3 rounded border border-stone-200">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
+                        <p class="text-xs text-stone-400 ml-2">* 문제를 클릭하면 수정할 수 있습니다.</p>
+                    </div>
+                    <!-- [수정] 초기화 버튼 아주 잘 보이게 변경 -->
+                    <button onclick="app.resetCustomQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-1 rounded text-xs font-bold hover:bg-red-200 transition flex items-center">
+                        <i class="fas fa-trash-alt mr-1"></i> 사용자 추가 문제 초기화
+                    </button>
                 </div>
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
-                    <!-- [수정] 테이블 스타일 적용 (admin-table 클래스) -->
                     <table class="w-full text-sm text-left admin-table table-bordered">
                         <thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold">
                             <tr>
-                                <th class="p-3 w-12 text-center">ID</th>
+                                <th class="p-3 w-16 text-center">ID</th>
                                 <th class="p-3 w-32">단원</th>
                                 <th class="p-3 w-20 text-center">유형</th>
                                 <th class="p-3">문제 (클릭하여 수정)</th>
@@ -244,7 +245,6 @@
                 <div class="bg-stone-50 p-6 rounded border border-stone-200 max-w-2xl mx-auto">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="font-bold text-xl">새 문제 만들기</h3>
-                        <!-- [수정] 다음 문제 번호 표시 (51번부터) -->
                         <span id="next-q-id-display" class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200"></span>
                     </div>
                     <div class="space-y-4">
@@ -415,8 +415,24 @@
             init: function() {
                 const btnTeacher = document.getElementById('btn-teacher-mode');
                 if(btnTeacher) btnTeacher.onclick = () => this.toggleTeacherMode();
+                
+                // [자동 복구] 1000번대 ID를 감지하면 51번부터 다시 매김
                 const saved = localStorage.getItem('hq_custom_q');
-                if(saved) this.state.customBank = JSON.parse(saved);
+                if (saved) {
+                    let loadedData = JSON.parse(saved);
+                    // 1000번 이상의 ID가 있는지 확인
+                    const hasWrongId = loadedData.some(q => q.id >= 1000);
+                    if (hasWrongId) {
+                        // 있다면 51번부터 재정렬
+                        loadedData = loadedData.map((q, idx) => {
+                            q.id = 51 + idx; 
+                            return q;
+                        });
+                        localStorage.setItem('hq_custom_q', JSON.stringify(loadedData));
+                    }
+                    this.state.customBank = loadedData;
+                }
+                
                 this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
             },
 
@@ -450,7 +466,6 @@
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
                 document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'빈칸','word':'단답','order':'순서'}[q.type] || '문제';
                 
-                // 단원명 표시 (없으면 '기타')
                 const unitEl = document.getElementById('question-unit');
                 if(unitEl) unitEl.innerText = q.unit || "기타";
                 
@@ -458,7 +473,6 @@
                 const area = document.getElementById('answer-area'); area.innerHTML = ''; 
                 this.tempAnswer = this.state.answers[q.id] || null; 
                 
-                // 이전 버튼 처리
                 document.getElementById('btn-prev').classList.toggle('hidden', this.state.currentIndex === 0);
                 document.getElementById('btn-next').className = this.state.currentIndex === 0 ? "w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md" : "w-2/3 bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md";
 
@@ -563,7 +577,7 @@
                 list.innerHTML = this.state.incorrectDetails.length===0 ? '<div class="text-center py-4">만점입니다! 🎉</div>' : this.state.incorrectDetails.map(d => `<div class="border-b pb-3 last:border-0"><p class="font-bold text-stone-800 mb-1">Q. ${d.q}</p><div class="flex gap-2 text-xs mb-2"><span class="text-red-600 bg-red-50 px-2 py-1 rounded">내 답: ${d.u}</span><span class="text-green-600 bg-green-50 px-2 py-1 rounded font-bold">정답: ${d.a}</span></div><p class="text-xs text-stone-500 bg-stone-50 p-2 rounded">${d.exp}</p></div>`).join('');
             },
 
-            // --- Firebase 저장 (핵심) ---
+            // --- Firebase 저장 ---
             saveToFirebase: function() {
                 const status = document.getElementById('submission-status');
                 if(!db) { status.innerHTML = "⚠️ DB 연결 실패 (설정 필요)"; return; }
@@ -594,7 +608,6 @@
                 else this.renderBank();
             },
             
-            // --- Firebase 데이터 관리 ---
             loadServerLogs: function() {
                 if(!db) return;
                 const tbody = document.getElementById('teacher-log-body');
@@ -704,7 +717,6 @@
             renderBank: function() {
                 this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
                 document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
-                // [수정] 테이블 HTML 생성 - 구분선 및 정답칸 배경 적용
                 document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
                     `<tr class="border-b hover:bg-stone-50 cursor-pointer" onclick="app.editQuestion(${q.id})">
                         <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
@@ -730,10 +742,8 @@
             },
             
             updateNextQuestionNumber: function() {
-                // [핵심 수정] 최대값 + 1 로직 (기본 50번 보장)
-                // 모든 문제 중 가장 큰 ID 찾기
-                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0); 
-                const nextId = (maxId > 0) ? maxId + 1 : 51;
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
+                const nextId = maxId + 1;
                 document.getElementById('next-q-id-display').innerText = `현재 ${nextId}번 문제 생성 중`;
             },
             
@@ -751,8 +761,7 @@
                     o = ot.split(',').map(s=>s.trim());
                 }
                 
-                // [핵심 수정] 51번부터 번호 매기기 로직
-                // 현재 전체 문제에서 가장 큰 ID + 1
+                // 51번부터 번호 매기기 로직
                 const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0);
                 const newId = (maxId > 0) ? maxId + 1 : 51;
 
@@ -781,7 +790,7 @@
                 this.updateNextQuestionNumber(); 
             },
             resetCustomQuestions: function() {
-                if(confirm("초기화? (1000번대 문제 등 사용자가 추가한 모든 문제가 삭제됩니다)")) { 
+                if(confirm("초기화? (사용자가 추가한 모든 문제가 삭제됩니다)")) { 
                     this.state.customBank=[]; 
                     this.state.allQuestions = [...defaultQuestions];
                     localStorage.removeItem('hq_custom_q'); 
