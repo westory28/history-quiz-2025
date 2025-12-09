@@ -37,17 +37,15 @@
         /* 모달 스타일 */
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
-        /* [수정] 테이블 구분선 강화 스타일 */
+        /* 테이블 구분선 강화 */
         .admin-table th, .admin-table td {
             border-bottom: 1px solid #e5e7eb;
             vertical-align: middle;
         }
-        /* 세로 구분선 추가 */
         .admin-table th:not(:last-child), 
         .admin-table td:not(:last-child) {
             border-right: 1px solid #d6d3d1; /* 진한 회색 선 */
         }
-        /* 정답 열 강조 */
         .col-answer {
             background-color: #fffbeb; /* 연한 노란색 배경 */
             color: #b45309;
@@ -223,7 +221,6 @@
                     <p class="text-xs text-stone-400">* 문제를 클릭하면 수정할 수 있습니다.</p>
                 </div>
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
-                    <!-- [수정] 테이블 스타일 적용 (admin-table 클래스) -->
                     <table class="w-full text-sm text-left admin-table table-bordered">
                         <thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold">
                             <tr>
@@ -244,7 +241,7 @@
                 <div class="bg-stone-50 p-6 rounded border border-stone-200 max-w-2xl mx-auto">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="font-bold text-xl">새 문제 만들기</h3>
-                        <!-- [수정] 다음 문제 번호 표시 (51번부터) -->
+                        <!-- 다음 문제 번호 표시 -->
                         <span id="next-q-id-display" class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200"></span>
                     </div>
                     <div class="space-y-4">
@@ -563,32 +560,12 @@
                 list.innerHTML = this.state.incorrectDetails.length===0 ? '<div class="text-center py-4">만점입니다! 🎉</div>' : this.state.incorrectDetails.map(d => `<div class="border-b pb-3 last:border-0"><p class="font-bold text-stone-800 mb-1">Q. ${d.q}</p><div class="flex gap-2 text-xs mb-2"><span class="text-red-600 bg-red-50 px-2 py-1 rounded">내 답: ${d.u}</span><span class="text-green-600 bg-green-50 px-2 py-1 rounded font-bold">정답: ${d.a}</span></div><p class="text-xs text-stone-500 bg-stone-50 p-2 rounded">${d.exp}</p></div>`).join('');
             },
 
-            // --- Firebase 저장 (핵심) ---
+            // --- Firebase 저장 ---
             saveToFirebase: function() {
                 const status = document.getElementById('submission-status');
                 if(!db) { status.innerHTML = "⚠️ DB 연결 실패 (설정 필요)"; return; }
-                
-                const data = {
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    timeString: new Date().toLocaleString(),
-                    class: this.state.student.class,
-                    number: this.state.student.number,
-                    name: this.state.student.name,
-                    score: this.state.score,
-                    status: this.state.isTimeOut ? "시간초과" : "완료"
-                };
-
-                // 컬렉션 이름을 'quiz_results'로 사용
-                db.collection("quiz_results").add(data)
-                .then(() => {
-                    status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold";
-                    status.innerHTML = '<i class="fas fa-check-circle"></i> 제출 완료!';
-                })
-                .catch((error) => {
-                    console.error("Error adding document: ", error);
-                    status.className = "bg-red-100 text-red-700 p-3 rounded text-sm mb-6 border border-red-200";
-                    status.innerHTML = '⚠️ 전송 실패. (네트워크 확인)';
-                });
+                const data = { timestamp: firebase.firestore.FieldValue.serverTimestamp(), timeString: new Date().toLocaleString(), class: this.state.student.class, number: this.state.student.number, name: this.state.student.name, score: this.state.score, status: this.state.isTimeOut ? "시간초과" : "완료" };
+                db.collection("quiz_results").add(data).then(() => { status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold"; status.innerHTML = '<i class="fas fa-check-circle"></i> 제출 완료!'; }).catch((error) => { console.error("Error: ", error); status.className = "bg-red-100 text-red-700 p-3 rounded text-sm mb-6 border border-red-200"; status.innerHTML = '⚠️ 전송 실패. (네트워크 확인)'; });
             },
 
             // --- 교사용 화면 ---
@@ -628,7 +605,6 @@
                         const d = doc.data();
                         count++;
                         this.state.logs.push(d);
-                        // 삭제 버튼 추가 (doc.id를 이용)
                         html += `<tr class="border-b hover:bg-stone-50">
                             <td class="p-3 text-stone-500 text-xs">${d.timeString}</td>
                             <td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td>
@@ -704,7 +680,6 @@
                     options = optText.split(',').map(s => s.trim());
                 }
 
-                // customBank에서 수정
                 const customIndex = this.state.customBank.findIndex(q => q.id === id);
                 if (customIndex !== -1) {
                     this.state.customBank[customIndex] = { id, unit, type, question: text, options, answer, explanation: exp };
@@ -726,7 +701,6 @@
             renderBank: function() {
                 this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
                 document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
-                // [수정] 테이블 HTML 생성 부분 - 구분선과 배경색 적용
                 document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
                     `<tr class="border-b hover:bg-stone-50 cursor-pointer" onclick="app.editQuestion(${q.id})">
                         <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
@@ -752,9 +726,9 @@
             },
             
             updateNextQuestionNumber: function() {
-                // [수정] 모든 질문(기본+커스텀) 중 가장 큰 ID를 찾아서 +1
-                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0);
-                const nextId = maxId > 0 ? maxId + 1 : 51; // 기본적으로 51부터 시작 보장
+                // [핵심 수정] 최대값 + 1 로직 (기본 50번 보장)
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
+                const nextId = maxId + 1;
                 document.getElementById('next-q-id-display').innerText = `현재 ${nextId}번 문제 생성 중`;
             },
             
@@ -772,9 +746,9 @@
                     o = ot.split(',').map(s=>s.trim());
                 }
                 
-                // [수정] ID 생성 로직 (1000번대 제거하고 이어서 생성)
-                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0);
-                const newId = maxId > 0 ? maxId + 1 : 51;
+                // [핵심 수정] 51번부터 번호 매기기 로직
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
+                const newId = maxId + 1;
 
                 const newQ = { 
                     id: newId, 
@@ -792,7 +766,6 @@
                 
                 alert("추가되었습니다. (번호: " + newId + ")");
                 
-                // 입력창 초기화
                 document.getElementById('new-q-text').value = '';
                 document.getElementById('new-q-options').value = '';
                 document.getElementById('new-q-answer').value = '';
@@ -807,7 +780,6 @@
                     this.state.allQuestions = [...defaultQuestions];
                     localStorage.removeItem('hq_custom_q'); 
                     this.renderBank(); 
-                    // 탭 리프레시 효과
                     if(!document.getElementById('tab-add').classList.contains('hidden')) {
                         this.updateNextQuestionNumber();
                     }
