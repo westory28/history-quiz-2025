@@ -30,17 +30,19 @@
             background-color: #44403c; color: white; padding: 6px 12px;
             border-radius: 8px; font-size: 0.85rem; font-weight: bold;
             display: flex; align-items: center; gap: 6px; cursor: pointer;
-            border: 1px solid #57534e; z-index: 9999;
+            border: 1px solid #57534e; z-index: 50;
         }
         .teacher-btn:hover { background-color: #292524; }
+
+        /* 모달 스타일 */
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
     </style>
 </head>
 <body class="text-stone-800 min-h-screen flex flex-col">
 
     <!-- 상단 헤더 -->
-    <header class="bg-stone-900 text-white py-4 shadow-lg sticky top-0 z-50">
+    <header class="bg-stone-900 text-white py-4 shadow-lg sticky top-0 z-40">
         <div class="container mx-auto px-4 flex justify-between items-center relative">
-            <!-- [수정] 상단 제목 변경 -->
             <h1 class="text-lg md:text-xl font-bold tracking-tight truncate pr-2">
                 <i class="fas fa-history text-amber-500 mr-2"></i>용신중학교 역사교사 방재석
             </h1>
@@ -55,7 +57,6 @@
         <!-- 1. 로그인 화면 -->
         <section id="view-login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg fade-in mt-8 border-t-4 border-amber-500">
             <div class="text-center mb-8">
-                <!-- [수정] 배지 문구 변경 -->
                 <span class="bg-amber-100 text-amber-900 text-sm font-bold px-3 py-1 rounded-full">용신중학교 2학년 2학기 역사1</span>
                 <h2 class="text-2xl font-bold serif text-stone-900 mt-4">당신의 역사 실력은?</h2>
                 <p class="text-red-500 font-bold text-sm mt-2"><i class="fas fa-stopwatch mr-1"></i> 제한시간 60초 (5문제)</p>
@@ -89,7 +90,7 @@
 
         <!-- 2. 퀴즈 화면 -->
         <section id="view-quiz" class="hidden max-w-2xl mx-auto fade-in">
-            <div class="bg-white rounded-lg shadow-sm mb-6 sticky top-20 z-40 overflow-hidden border border-stone-200">
+            <div class="bg-white rounded-lg shadow-sm mb-6 sticky top-20 z-30 overflow-hidden border border-stone-200">
                 <div class="flex justify-between items-center px-4 py-2 bg-stone-50 border-b border-stone-100">
                     <span class="text-sm font-bold text-stone-600" id="quiz-progress-text">1 / 5</span>
                     <span class="text-lg font-bold text-red-600 font-mono" id="timer-text">60초</span>
@@ -100,11 +101,14 @@
             </div>
 
             <div class="bg-white p-6 md:p-10 rounded-lg min-h-[400px] flex flex-col relative shadow-md">
-                <span id="question-badge" class="absolute top-0 right-0 bg-stone-100 text-stone-600 text-xs font-bold px-3 py-1 rounded-bl-lg border-l border-b border-stone-200">
-                    유형
-                </span>
+                <div class="flex justify-between items-start mb-2">
+                    <span id="question-unit" class="text-xs font-bold text-stone-400 bg-stone-100 px-2 py-1 rounded">단원 정보</span>
+                    <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">
+                        유형
+                    </span>
+                </div>
                 
-                <h3 id="question-text" class="text-xl md:text-2xl font-bold mt-4 mb-8 text-stone-900 leading-relaxed serif break-keep">
+                <h3 id="question-text" class="text-xl md:text-2xl font-bold mt-2 mb-8 text-stone-900 leading-relaxed serif break-keep">
                     <!-- 문제 내용 -->
                 </h3>
 
@@ -112,7 +116,6 @@
                     <!-- 정답 입력란 -->
                 </div>
 
-                <!-- 하단 버튼 영역 -->
                 <div class="flex gap-3 mt-auto">
                     <button id="btn-prev" onclick="app.prevQuestion()" class="hidden w-1/3 bg-stone-200 text-stone-700 font-bold py-4 rounded-lg hover:bg-stone-300 transition shadow-sm">
                         <i class="fas fa-chevron-left mr-1"></i> 이전
@@ -160,7 +163,7 @@
         </section>
 
         <!-- 4. 교사용 대시보드 -->
-        <section id="view-teacher" class="hidden max-w-6xl mx-auto bg-white p-6 rounded shadow-xl mt-4 border border-stone-300">
+        <section id="view-teacher" class="hidden max-w-6xl mx-auto bg-white p-6 rounded shadow-xl mt-4 border border-stone-300 relative">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <div>
                     <h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2>
@@ -187,10 +190,10 @@
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
                     <table class="w-full text-sm text-left">
                         <thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold">
-                            <tr><th class="p-3">시간</th><th class="p-3">정보</th><th class="p-3">점수</th><th class="p-3">상태</th></tr>
+                            <tr><th class="p-3">시간</th><th class="p-3">정보</th><th class="p-3">점수</th><th class="p-3">상태</th><th class="p-3">삭제</th></tr>
                         </thead>
                         <tbody id="teacher-log-body" class="bg-white">
-                            <tr><td colspan="4" class="p-4 text-center text-stone-400">데이터를 불러오는 중...</td></tr>
+                            <tr><td colspan="5" class="p-4 text-center text-stone-400">데이터를 불러오는 중...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -199,10 +202,17 @@
             <!-- 탭 2: 문제 은행 -->
             <div id="tab-bank" class="hidden">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-lg">전체 문제 리스트</h3>
-                    <button onclick="app.resetCustomQuestions()" class="text-red-500 text-xs hover:underline">사용자 문제 초기화</button>
+                    <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
+                    <p class="text-xs text-stone-400">* 문제를 클릭하면 수정할 수 있습니다.</p>
                 </div>
-                <div class="overflow-auto max-h-[500px] border rounded bg-stone-50"><table class="w-full text-sm text-left"><thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold"><tr><th class="p-3 w-12">ID</th><th class="p-3 w-20">유형</th><th class="p-3">문제</th><th class="p-3 w-32">정답</th></tr></thead><tbody id="bank-body" class="bg-white"></tbody></table></div>
+                <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold">
+                            <tr><th class="p-3 w-12">ID</th><th class="p-3 w-40">단원</th><th class="p-3 w-20">유형</th><th class="p-3">문제 (클릭하여 수정)</th><th class="p-3 w-32">정답</th></tr>
+                        </thead>
+                        <tbody id="bank-body" class="bg-white"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- 탭 3: 문제 추가 -->
@@ -210,9 +220,19 @@
                 <div class="bg-stone-50 p-6 rounded border border-stone-200 max-w-2xl mx-auto">
                     <h3 class="font-bold text-xl mb-4 border-b pb-2">새 문제 만들기</h3>
                     <div class="space-y-4">
-                        <div><label class="block text-sm font-bold mb-1">유형</label><select id="new-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput()"><option value="choice">객관식</option><option value="blank">빈칸 채우기</option><option value="word">단답형</option><option value="order">순서 맞추기</option></select></div>
+                        <div>
+                            <label class="block text-sm font-bold mb-1">단원 선택</label>
+                            <select id="new-q-unit" class="w-full p-2 border rounded bg-white">
+                                <option value="I. 문명의 발생과 고대 세계의 형성">I. 문명의 발생과 고대 세계의 형성</option>
+                                <option value="II. 세계 종교의 확산과 지역 문화의 형성">II. 세계 종교의 확산과 지역 문화의 형성</option>
+                                <option value="III. 지역 세계의 교류와 변화">III. 지역 세계의 교류와 변화</option>
+                                <option value="IV. 제국주의 침략과 국민 국가 건설 운동">IV. 제국주의 침략과 국민 국가 건설 운동</option>
+                                <option value="V. 세계 대전과 사회 변동">V. 세계 대전과 사회 변동</option>
+                            </select>
+                        </div>
+                        <div><label class="block text-sm font-bold mb-1">유형</label><select id="new-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('new')"><option value="choice">객관식</option><option value="blank">빈칸 채우기</option><option value="word">단답형</option><option value="order">순서 맞추기</option></select></div>
                         <div><label class="block text-sm font-bold mb-1">문제</label><textarea id="new-q-text" class="w-full p-2 border rounded h-20"></textarea></div>
-                        <div id="option-container"><label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label><input type="text" id="new-q-options" class="w-full p-2 border rounded" placeholder="예: A, B, C, D"></div>
+                        <div id="option-container-new"><label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label><input type="text" id="new-q-options" class="w-full p-2 border rounded" placeholder="예: A, B, C, D"></div>
                         <div><label class="block text-sm font-bold mb-1">정답</label><input type="text" id="new-q-answer" class="w-full p-2 border rounded"></div>
                         <div><label class="block text-sm font-bold mb-1">해설</label><input type="text" id="new-q-exp" class="w-full p-2 border rounded"></div>
                         <button onclick="app.addCustomQuestion()" class="w-full bg-amber-600 text-white font-bold py-3 rounded hover:bg-amber-700 transition">추가하기</button>
@@ -220,12 +240,66 @@
                 </div>
             </div>
         </section>
+
+        <!-- 문제 수정 모달 -->
+        <div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+            <div class="modal-overlay absolute inset-0" onclick="app.closeEditModal()"></div>
+            <div class="bg-white p-6 rounded-lg shadow-xl z-10 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                <h3 class="font-bold text-xl mb-4 border-b pb-2">문제 수정</h3>
+                <input type="hidden" id="edit-q-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-1">단원</label>
+                        <select id="edit-q-unit" class="w-full p-2 border rounded">
+                            <option value="I. 문명의 발생과 고대 세계의 형성">I. 문명의 발생과 고대 세계의 형성</option>
+                            <option value="II. 세계 종교의 확산과 지역 문화의 형성">II. 세계 종교의 확산과 지역 문화의 형성</option>
+                            <option value="III. 지역 세계의 교류와 변화">III. 지역 세계의 교류와 변화</option>
+                            <option value="IV. 제국주의 침략과 국민 국가 건설 운동">IV. 제국주의 침략과 국민 국가 건설 운동</option>
+                            <option value="V. 세계 대전과 사회 변동">V. 세계 대전과 사회 변동</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1">유형</label>
+                        <select id="edit-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('edit')">
+                            <option value="choice">객관식</option>
+                            <option value="blank">빈칸 채우기</option>
+                            <option value="word">단답형</option>
+                            <option value="order">순서 맞추기</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1">문제</label>
+                        <textarea id="edit-q-text" class="w-full p-2 border rounded h-20"></textarea>
+                    </div>
+                    <div id="option-container-edit">
+                        <label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label>
+                        <input type="text" id="edit-q-options" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1">정답</label>
+                        <input type="text" id="edit-q-answer" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1">해설</label>
+                        <input type="text" id="edit-q-exp" class="w-full p-2 border rounded">
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="app.saveEditedQuestion()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700">저장</button>
+                        <button onclick="app.closeEditModal()" class="flex-1 bg-stone-200 text-stone-700 font-bold py-3 rounded hover:bg-stone-300">취소</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
+    <!-- 저작권 푸터 -->
+    <footer class="bg-stone-100 py-6 mt-8 border-t border-stone-200 text-center">
+        <p class="text-stone-500 text-xs mb-1">본 웹사이트는 비영리적 교육 목적으로 제작되었습니다. 영리적 이용을 금합니다.</p>
+        <p class="text-stone-400 text-xs font-bold font-mono">Copyright © 용신중학교 역사교사 방재석. All rights reserved.</p>
+    </footer>
+
     <script>
-        // ======================================================================================
-        // [선생님의 Firebase 설정]
-        // ======================================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyAOlPQ5PFmL0zxmGrGcuEBnqBXisph7kPU",
             authDomain: "history-quiz-yongsin.firebaseapp.com",
@@ -235,9 +309,7 @@
             appId: "1:177587430482:web:d79cc145c11e335cc3ab8b",
             measurementId: "G-LHN97D7R2R"
         };
-        // ======================================================================================
 
-        // Firebase 초기화
         let db;
         try {
             if (!firebase.apps.length) {
@@ -252,56 +324,60 @@
 
         /* 문제 데이터 */
         const defaultQuestions = [
-            { id: 1, type: "choice", question: "아테네 민주 정치의 전성기 지도자는?", answer: "페리클레스", options: ["페리클레스", "알렉산드로스", "카이사르", "솔론"], explanation: "페리클레스 시대에 직접 민주주의가 완성됨." },
-            { id: 2, type: "blank", question: "아테네 민주 정치에서 여성, 노예, [ _____ ]은 참정권이 없었다.", answer: "외국인", explanation: "제한적 민주정치였음." },
-            { id: 3, type: "choice", question: "그리스가 페르시아 전쟁 승리 후 맺은 동맹은?", answer: "델로스 동맹", options: ["펠로폰네소스 동맹", "델로스 동맹", "신성 동맹", "삼국 동맹"], explanation: "아테네가 맹주가 됨." },
-            { id: 4, type: "word", question: "그리스-페르시아 전쟁 승전보의 유래가 된 전투는?", answer: "마라톤", explanation: "마라톤 경기의 기원." },
-            { id: 5, type: "choice", question: "로마 공화정 초기 귀족들의 최고 의결 기관은?", answer: "원로원", options: ["원로원", "민회", "호민관", "집정관"], explanation: "실권 장악." },
-            { id: 6, type: "word", question: "로마 평민 대표 직책은?", answer: "호민관", explanation: "거부권 행사 가능." },
-            { id: 7, type: "choice", question: "로마 초대 황제 아우구스투스는 누구?", answer: "옥타비아누스", options: ["카이사르", "옥타비아누스", "안토니우스", "네로"], explanation: "제정 시작." },
-            { id: 8, type: "blank", question: "로마의 평화 시대를 [ _____ ] 로마나 라고 한다.", answer: "팍스", explanation: "Pax Romana." },
-            { id: 9, type: "choice", question: "로마 제국을 4분할 통치한 황제는?", answer: "디오클레티아누스", options: ["콘스탄티누스", "디오클레티아누스", "테오도시우스", "트라야누스"], explanation: "효율적 통치 목적." },
-            { id: 10, type: "choice", question: "봉건제에서 주군이 봉신에게 준 것은?", answer: "봉토", options: ["봉토", "노예", "화폐", "성경"], explanation: "토지 매개 계약." },
-            { id: 11, type: "blank", question: "장원에 예속된 농민을 [ _____ ]라고 한다.", answer: "농노", explanation: "거주 이전 자유 없음." },
-            { id: 12, type: "word", question: "교황권이 황제권보다 강해진 사건은? (ㅋㄴㅅ의 굴욕)", answer: "카노사의 굴욕", explanation: "하인리히 4세가 굴복함." },
-            { id: 13, type: "choice", question: "십자군 전쟁 결과는?", answer: "교황권 쇠퇴", options: ["교황권 강화", "교황권 쇠퇴", "봉건제 강화", "무역 쇠퇴"], explanation: "실패로 인한 권위 추락." },
-            { id: 14, type: "choice", question: "신앙과 이성의 조화를 추구한 중세 철학은?", answer: "스콜라 철학", options: ["스콜라 철학", "경험주의", "실존주의", "계몽 사상"], explanation: "토마스 아퀴나스." },
-            { id: 15, type: "blank", question: "스콜라 철학 집대성: 토마스 [ _____ ]", answer: "아퀴나스", explanation: "신학 대전 저술." },
-            { id: 16, type: "choice", question: "뾰족한 첨탑, 스테인드글라스 건축 양식은?", answer: "고딕 양식", options: ["로마네스크", "고딕 양식", "비잔티움", "바로크"], explanation: "중세 대표 양식." },
-            { id: 17, type: "word", question: "유스티니아누스 대제가 편찬한 법전은?", answer: "유스티니아누스 법전", explanation: "로마법 집대성." },
-            { id: 18, type: "choice", question: "이탈리아 르네상스의 근본 정신은?", answer: "인문주의", options: ["신본주의", "인문주의", "민족주의", "제국주의"], explanation: "인간 중심." },
-            { id: 19, type: "choice", question: "모나리자를 그린 화가는?", answer: "레오나르도 다빈치", options: ["미켈란젤로", "라파엘로", "레오나르도 다빈치", "보티첼리"], explanation: "르네상스 맨." },
-            { id: 20, type: "blank", question: "알프스 이북 르네상스는 [ _____ ] 비판 성격이 강했다.", answer: "교회", explanation: "사회 비판적." },
-            { id: 21, type: "word", question: "활판 인쇄술 발명가는?", answer: "구텐베르크", explanation: "지식 혁명." },
-            { id: 22, type: "choice", question: "루터가 비판한 것은?", answer: "면벌부 판매", options: ["성직 매매", "면벌부 판매", "십자군", "마녀 사냥"], explanation: "95개조 반박문." },
-            { id: 23, type: "choice", question: "예정설을 주장한 사람은?", answer: "칼뱅", options: ["루터", "칼뱅", "헨리 8세", "쯔빙글리"], explanation: "직업 소명설." },
-            { id: 24, type: "choice", question: "이혼 문제로 종교 개혁한 왕은?", answer: "헨리 8세", options: ["엘리자베스 1세", "헨리 8세", "루이 14세", "찰스 1세"], explanation: "영국 국교회 성립." },
-            { id: 25, type: "choice", question: "신항로 개척, 아메리카 발견자는?", answer: "콜럼버스", options: ["바스코 다 가마", "마젤란", "콜럼버스", "디아스"], explanation: "서인도 제도 도착." },
-            { id: 26, type: "word", question: "최초 세계 일주 성공 팀은?", answer: "마젤란", explanation: "지구 구형설 입증." },
-            { id: 27, type: "blank", question: "왕권은 신이 주었다는 [ _____ ]설.", answer: "왕권신수", explanation: "절대왕정 사상적 기반." },
-            { id: 28, type: "choice", question: "무적함대를 만든 에스파냐 왕은?", answer: "펠리페 2세", options: ["펠리페 2세", "엘리자베스 1세", "루이 14세", "표트르 대제"], explanation: "전성기 구가." },
-            { id: 29, type: "choice", question: "태양왕, 베르사유 궁전 주인은?", answer: "루이 14세", options: ["루이 16세", "루이 14세", "나폴레옹", "앙리 4세"], explanation: "짐이 곧 국가다." },
-            { id: 30, type: "word", question: "러시아 서유럽화 정책 추진 황제는?", answer: "표트르 대제", explanation: "수염세." },
-            { id: 31, type: "choice", question: "명예혁명 결과 승인된 문서는?", answer: "권리장전", options: ["대헌장", "권리청원", "권리장전", "독립선언문"], explanation: "입헌군주제 토대." },
-            { id: 32, type: "blank", question: "미국 혁명 발단: [ _____ ] 차 사건.", answer: "보스턴", explanation: "대표 없으면 과세 없다." },
-            { id: 33, type: "order", question: "프랑스 혁명 순서", answer: "삼부회-바스티유-인권선언-공포정치", options: ["바스티유습격", "공포정치", "인권선언", "삼부회소집"], explanation: "전개 과정 암기." },
-            { id: 34, type: "choice", question: "공포 정치 주도 인물은?", answer: "로베스피에르", options: ["루이 16세", "로베스피에르", "나폴레옹", "당통"], explanation: "공안 위원회." },
-            { id: 35, type: "choice", question: "가리발디가 이끈 부대는?", answer: "붉은 셔츠대", options: ["붉은 셔츠대", "철혈 부대", "십자군", "의용군"], explanation: "이탈리아 통일 기여." },
-            { id: 36, type: "word", question: "비스마르크의 통일 정책은?", answer: "철혈 정책", explanation: "독일 통일." },
-            { id: 37, type: "choice", question: "산업혁명 발상지는?", answer: "영국", options: ["프랑스", "독일", "미국", "영국"], explanation: "조건이 좋았음." },
-            { id: 38, type: "blank", question: "제국주의 정당화 논리: [ _____ ]론.", answer: "사회진화", explanation: "스펜서." },
-            { id: 39, type: "choice", question: "식민지 쟁탈전 가장 치열했던 곳?", answer: "아프리카", options: ["아시아", "아프리카", "아메리카", "유럽"], explanation: "분할됨." },
-            { id: 40, type: "choice", question: "1차 대전 원인 사건?", answer: "사라예보 사건", options: ["보스턴 차 사건", "사라예보 사건", "피의 일요일", "진주만"], explanation: "오스트리아 황태자 암살." },
-            { id: 41, type: "choice", question: "영국, 프랑스, 러시아 동맹은?", answer: "삼국 협상", options: ["삼국 동맹", "삼국 협상", "추축국", "연합국"], explanation: "독일 포위." },
-            { id: 42, type: "word", question: "독일에게 막대한 배상금 물린 조약?", answer: "베르사유 조약", explanation: "2차 대전 씨앗." },
-            { id: 43, type: "blank", question: "미국 대공황 극복 정책: [ _____ ] 정책.", answer: "뉴딜", explanation: "루즈벨트." },
-            { id: 44, type: "choice", question: "국가 전체 우선 사상은?", answer: "전체주의", options: ["자유주의", "민주주의", "전체주의", "개인주의"], explanation: "파시즘, 나치즘." },
-            { id: 45, type: "choice", question: "나치의 유대인 학살은?", answer: "홀로코스트", options: ["홀로코스트", "아파르트헤이트", "킬링필드", "인종 청소"], explanation: "제노사이드." },
-            { id: 46, type: "choice", question: "대표적 고딕 건축물?", answer: "노트르담 대성당", options: ["판테온", "파르테논", "노트르담 대성당", "콜로세움"], explanation: "파리 소재." },
-            { id: 47, type: "blank", question: "루이 14세의 궁전: [ _____ ] 궁전.", answer: "베르사유", explanation: "바로크 양식." },
-            { id: 48, type: "choice", question: "청교도 혁명 지도자?", answer: "크롬웰", options: ["찰스 1세", "크롬웰", "제임스 2세", "윌리엄 3세"], explanation: "호국경 취임." },
-            { id: 49, type: "word", question: "천부인권: 생명, 자유, [  ] 추구.", answer: "행복", explanation: "미국 독립 선언." },
-            { id: 50, type: "choice", question: "나폴레옹이 전파한 사상?", answer: "자유주의", options: ["왕권신수설", "자유주의", "복고주의", "전체주의"], explanation: "혁명 정신." }
+            // I. 고대
+            { id: 1, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "아테네 민주 정치의 전성기 지도자는?", answer: "페리클레스", options: ["페리클레스", "알렉산드로스", "카이사르", "솔론"], explanation: "페리클레스 시대에 직접 민주주의가 완성됨." },
+            { id: 2, unit: "I. 문명의 발생과 고대 세계의 형성", type: "blank", question: "아테네 민주 정치에서 여성, 노예, [ _____ ]은 참정권이 없었다.", answer: "외국인", explanation: "제한적 민주정치였음." },
+            { id: 3, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "그리스가 페르시아 전쟁 승리 후 맺은 동맹은?", answer: "델로스 동맹", options: ["펠로폰네소스 동맹", "델로스 동맹", "신성 동맹", "삼국 동맹"], explanation: "아테네가 맹주가 됨." },
+            { id: 4, unit: "I. 문명의 발생과 고대 세계의 형성", type: "word", question: "그리스-페르시아 전쟁 승전보의 유래가 된 전투는?", answer: "마라톤", explanation: "마라톤 경기의 기원." },
+            { id: 5, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "로마 공화정 초기 귀족들의 최고 의결 기관은?", answer: "원로원", options: ["원로원", "민회", "호민관", "집정관"], explanation: "실권 장악." },
+            { id: 6, unit: "I. 문명의 발생과 고대 세계의 형성", type: "word", question: "로마 평민 대표 직책은?", answer: "호민관", explanation: "거부권 행사 가능." },
+            { id: 7, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "로마 초대 황제 아우구스투스는 누구?", answer: "옥타비아누스", options: ["카이사르", "옥타비아누스", "안토니우스", "네로"], explanation: "제정 시작." },
+            { id: 8, unit: "I. 문명의 발생과 고대 세계의 형성", type: "blank", question: "로마의 평화 시대를 [ _____ ] 로마나 라고 한다.", answer: "팍스", explanation: "Pax Romana." },
+            { id: 9, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "로마 제국을 4분할 통치한 황제는?", answer: "디오클레티아누스", options: ["콘스탄티누스", "디오클레티아누스", "테오도시우스", "트라야누스"], explanation: "효율적 통치 목적." },
+            // II. 중세
+            { id: 10, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "봉건제에서 주군이 봉신에게 준 것은?", answer: "봉토", options: ["봉토", "노예", "화폐", "성경"], explanation: "토지 매개 계약." },
+            { id: 11, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "blank", question: "장원에 예속된 농민을 [ _____ ]라고 한다.", answer: "농노", explanation: "거주 이전 자유 없음." },
+            { id: 12, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "교황권이 황제권보다 강해진 사건은? (ㅋㄴㅅ의 굴욕)", answer: "카노사의 굴욕", explanation: "하인리히 4세가 굴복함." },
+            { id: 13, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "십자군 전쟁 결과는?", answer: "교황권 쇠퇴", options: ["교황권 강화", "교황권 쇠퇴", "봉건제 강화", "무역 쇠퇴"], explanation: "실패로 인한 권위 추락." },
+            { id: 14, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "신앙과 이성의 조화를 추구한 중세 철학은?", answer: "스콜라 철학", options: ["스콜라 철학", "경험주의", "실존주의", "계몽 사상"], explanation: "토마스 아퀴나스." },
+            { id: 15, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "blank", question: "스콜라 철학 집대성: 토마스 [ _____ ]", answer: "아퀴나스", explanation: "신학 대전 저술." },
+            { id: 16, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "뾰족한 첨탑, 스테인드글라스 건축 양식은?", answer: "고딕 양식", options: ["로마네스크", "고딕 양식", "비잔티움", "바로크"], explanation: "중세 대표 양식." },
+            { id: 17, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "유스티니아누스 대제가 편찬한 법전은?", answer: "유스티니아누스 법전", explanation: "로마법 집대성." },
+            { id: 18, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "이탈리아 르네상스의 근본 정신은?", answer: "인문주의", options: ["신본주의", "인문주의", "민족주의", "제국주의"], explanation: "인간 중심." },
+            { id: 19, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "모나리자를 그린 화가는?", answer: "레오나르도 다빈치", options: ["미켈란젤로", "라파엘로", "레오나르도 다빈치", "보티첼리"], explanation: "르네상스 맨." },
+            { id: 20, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "blank", question: "알프스 이북 르네상스는 [ _____ ] 비판 성격이 강했다.", answer: "교회", explanation: "사회 비판적." },
+            { id: 21, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "활판 인쇄술 발명가는?", answer: "구텐베르크", explanation: "지식 혁명." },
+            { id: 22, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "루터가 비판한 것은?", answer: "면벌부 판매", options: ["성직 매매", "면벌부 판매", "십자군", "마녀 사냥"], explanation: "95개조 반박문." },
+            { id: 23, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "예정설을 주장한 사람은?", answer: "칼뱅", options: ["루터", "칼뱅", "헨리 8세", "쯔빙글리"], explanation: "직업 소명설." },
+            { id: 24, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "이혼 문제로 종교 개혁한 왕은?", answer: "헨리 8세", options: ["엘리자베스 1세", "헨리 8세", "루이 14세", "찰스 1세"], explanation: "영국 국교회 성립." },
+            // III. 근대
+            { id: 25, unit: "III. 지역 세계의 교류와 변화", type: "choice", question: "신항로 개척, 아메리카 발견자는?", answer: "콜럼버스", options: ["바스코 다 가마", "마젤란", "콜럼버스", "디아스"], explanation: "서인도 제도 도착." },
+            { id: 26, unit: "III. 지역 세계의 교류와 변화", type: "word", question: "최초 세계 일주 성공 팀은?", answer: "마젤란", explanation: "지구 구형설 입증." },
+            { id: 27, unit: "III. 지역 세계의 교류와 변화", type: "blank", question: "왕권은 신이 주었다는 [ _____ ]설.", answer: "왕권신수", explanation: "절대왕정 사상적 기반." },
+            { id: 28, unit: "III. 지역 세계의 교류와 변화", type: "choice", question: "무적함대를 만든 에스파냐 왕은?", answer: "펠리페 2세", options: ["펠리페 2세", "엘리자베스 1세", "루이 14세", "표트르 대제"], explanation: "전성기 구가." },
+            { id: 29, unit: "III. 지역 세계의 교류와 변화", type: "choice", question: "태양왕, 베르사유 궁전 주인은?", answer: "루이 14세", options: ["루이 16세", "루이 14세", "나폴레옹", "앙리 4세"], explanation: "짐이 곧 국가다." },
+            { id: 30, unit: "III. 지역 세계의 교류와 변화", type: "word", question: "러시아 서유럽화 정책 추진 황제는?", answer: "표트르 대제", explanation: "수염세." },
+            { id: 31, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "명예혁명 결과 승인된 문서는?", answer: "권리장전", options: ["대헌장", "권리청원", "권리장전", "독립선언문"], explanation: "입헌군주제 토대." },
+            { id: 32, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "blank", question: "미국 혁명 발단: [ _____ ] 차 사건.", answer: "보스턴", explanation: "대표 없으면 과세 없다." },
+            { id: 33, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "order", question: "프랑스 혁명 순서", answer: "삼부회-바스티유-인권선언-공포정치", options: ["바스티유습격", "공포정치", "인권선언", "삼부회소집"], explanation: "전개 과정 암기." },
+            { id: 34, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "공포 정치 주도 인물은?", answer: "로베스피에르", options: ["루이 16세", "로베스피에르", "나폴레옹", "당통"], explanation: "공안 위원회." },
+            { id: 35, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "가리발디가 이끈 부대는?", answer: "붉은 셔츠대", options: ["붉은 셔츠대", "철혈 부대", "십자군", "의용군"], explanation: "이탈리아 통일 기여." },
+            { id: 36, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "비스마르크의 통일 정책은?", answer: "철혈 정책", explanation: "독일 통일." },
+            { id: 37, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "산업혁명 발상지는?", answer: "영국", options: ["프랑스", "독일", "미국", "영국"], explanation: "조건이 좋았음." },
+            { id: 38, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "blank", question: "제국주의 정당화 논리: [ _____ ]론.", answer: "사회진화", explanation: "스펜서." },
+            { id: 39, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "식민지 쟁탈전 가장 치열했던 곳?", answer: "아프리카", options: ["아시아", "아프리카", "아메리카", "유럽"], explanation: "분할됨." },
+            // V. 세계 대전
+            { id: 40, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "1차 대전 원인 사건?", answer: "사라예보 사건", options: ["보스턴 차 사건", "사라예보 사건", "피의 일요일", "진주만"], explanation: "오스트리아 황태자 암살." },
+            { id: 41, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "영국, 프랑스, 러시아 동맹은?", answer: "삼국 협상", options: ["삼국 동맹", "삼국 협상", "추축국", "연합국"], explanation: "독일 포위." },
+            { id: 42, unit: "V. 세계 대전과 사회 변동", type: "word", question: "독일에게 막대한 배상금 물린 조약?", answer: "베르사유 조약", explanation: "2차 대전 씨앗." },
+            { id: 43, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "미국 대공황 극복 정책: [ _____ ] 정책.", answer: "뉴딜", explanation: "루즈벨트." },
+            { id: 44, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "국가 전체 우선 사상은?", answer: "전체주의", options: ["자유주의", "민주주의", "전체주의", "개인주의"], explanation: "파시즘, 나치즘." },
+            { id: 45, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "나치의 유대인 학살은?", answer: "홀로코스트", options: ["홀로코스트", "아파르트헤이트", "킬링필드", "인종 청소"], explanation: "제노사이드." },
+            { id: 46, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "대표적 고딕 건축물?", answer: "노트르담 대성당", options: ["판테온", "파르테논", "노트르담 대성당", "콜로세움"], explanation: "파리 소재." },
+            { id: 47, unit: "III. 지역 세계의 교류와 변화", type: "blank", question: "루이 14세의 궁전: [ _____ ] 궁전.", answer: "베르사유", explanation: "바로크 양식." },
+            { id: 48, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "청교도 혁명 지도자?", answer: "크롬웰", options: ["찰스 1세", "크롬웰", "제임스 2세", "윌리엄 3세"], explanation: "호국경 취임." },
+            { id: 49, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "천부인권: 생명, 자유, [  ] 추구.", answer: "행복", explanation: "미국 독립 선언." },
+            { id: 50, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "나폴레옹이 전파한 사상?", answer: "자유주의", options: ["왕권신수설", "자유주의", "복고주의", "전체주의"], explanation: "혁명 정신." }
         ];
 
         /* 앱 로직 */
@@ -345,11 +421,11 @@
                 const q = this.state.questions[this.state.currentIndex];
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
                 document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'빈칸','word':'단답','order':'순서'}[q.type] || '문제';
+                document.getElementById('question-unit').innerText = q.unit || "기타";
                 document.getElementById('question-text').innerText = q.question;
                 const area = document.getElementById('answer-area'); area.innerHTML = ''; 
-                this.tempAnswer = this.state.answers[q.id] || null; // 정답 복구
+                this.tempAnswer = this.state.answers[q.id] || null; 
                 
-                // 이전 버튼 처리
                 document.getElementById('btn-prev').classList.toggle('hidden', this.state.currentIndex === 0);
                 document.getElementById('btn-next').className = this.state.currentIndex === 0 ? "w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md" : "w-2/3 bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md";
 
@@ -360,7 +436,6 @@
                         const isSelected = (this.tempAnswer === opt);
                         btn.className = isSelected ? "w-full text-left p-4 rounded border-2 border-amber-600 bg-amber-600 text-white font-bold shadow-sm" : "w-full text-left p-4 rounded border border-stone-200 hover:bg-stone-50 bg-white";
                         const spanClass = isSelected ? "w-6 h-6 rounded-full bg-white text-amber-600 inline-flex items-center justify-center text-xs font-bold mr-3" : "w-6 h-6 rounded-full bg-stone-200 inline-flex items-center justify-center text-xs font-bold mr-3";
-                        
                         btn.innerHTML = `<span class="${spanClass}">${i+1}</span> ${opt}`;
                         btn.onclick = () => {
                             Array.from(grid.children).forEach(c => {
@@ -378,8 +453,6 @@
                     this.orderTemp = this.tempAnswer ? this.tempAnswer.split('-') : [];
                     const box = document.createElement('div'); box.className="border-2 dashed border-amber-300 rounded p-4 mb-3 bg-amber-50 min-h-[50px] flex flex-wrap gap-2";
                     const opts = document.createElement('div'); opts.className="flex flex-wrap gap-2";
-                    
-                    // 선택된 항목 렌더링
                     this.orderTemp.forEach(opt => {
                         const btn = document.createElement('button'); btn.className="px-3 py-2 bg-amber-600 text-white border rounded shadow-sm"; btn.innerText=opt;
                         btn.onclick = () => {
@@ -388,8 +461,6 @@
                         };
                         box.appendChild(btn);
                     });
-
-                    // 선택되지 않은 항목 렌더링
                     q.options.filter(o => !this.orderTemp.includes(o)).sort(()=>0.5-Math.random()).forEach(opt => {
                         const btn = document.createElement('button'); btn.className="px-3 py-2 bg-white border rounded shadow-sm"; btn.innerText=opt;
                         btn.onclick = () => {
@@ -401,29 +472,18 @@
                     area.append(box, opts);
                 } else {
                     const inp = document.createElement('input'); inp.type="text"; inp.className="w-full p-4 border-b-2 border-stone-300 focus:border-amber-500 text-center text-lg outline-none";
-                    inp.placeholder="정답 입력"; 
-                    if(this.tempAnswer) inp.value = this.tempAnswer;
+                    inp.placeholder="정답 입력"; if(this.tempAnswer) inp.value = this.tempAnswer;
                     inp.oninput = (e) => this.tempAnswer=e.target.value;
                     inp.onkeydown = (e) => { if(e.key==='Enter') this.submitAnswer(); };
                     area.appendChild(inp);
                 }
             },
-            
             prevQuestion: function() {
-                // 현재 상태 저장
                 const q = this.state.questions[this.state.currentIndex];
-                if (q.type === 'order') {
-                    if (this.orderTemp && this.orderTemp.length > 0) this.state.answers[q.id] = this.orderTemp.join('-');
-                } else {
-                    if (this.tempAnswer) this.state.answers[q.id] = this.tempAnswer;
-                }
-                
-                if (this.state.currentIndex > 0) {
-                    this.state.currentIndex--;
-                    this.renderQuestion();
-                }
+                if (q.type === 'order') { if (this.orderTemp && this.orderTemp.length > 0) this.state.answers[q.id] = this.orderTemp.join('-'); } 
+                else { if (this.tempAnswer) this.state.answers[q.id] = this.tempAnswer; }
+                if (this.state.currentIndex > 0) { this.state.currentIndex--; this.renderQuestion(); }
             },
-
             submitAnswer: function() {
                 const q = this.state.questions[this.state.currentIndex];
                 let ans = this.tempAnswer;
@@ -457,32 +517,12 @@
                 list.innerHTML = this.state.incorrectDetails.length===0 ? '<div class="text-center py-4">만점입니다! 🎉</div>' : this.state.incorrectDetails.map(d => `<div class="border-b pb-3 last:border-0"><p class="font-bold text-stone-800 mb-1">Q. ${d.q}</p><div class="flex gap-2 text-xs mb-2"><span class="text-red-600 bg-red-50 px-2 py-1 rounded">내 답: ${d.u}</span><span class="text-green-600 bg-green-50 px-2 py-1 rounded font-bold">정답: ${d.a}</span></div><p class="text-xs text-stone-500 bg-stone-50 p-2 rounded">${d.exp}</p></div>`).join('');
             },
 
-            // --- Firebase 저장 (핵심) ---
+            // --- Firebase 저장 ---
             saveToFirebase: function() {
                 const status = document.getElementById('submission-status');
                 if(!db) { status.innerHTML = "⚠️ DB 연결 실패 (설정 필요)"; return; }
-                
-                const data = {
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    timeString: new Date().toLocaleString(),
-                    class: this.state.student.class,
-                    number: this.state.student.number,
-                    name: this.state.student.name,
-                    score: this.state.score,
-                    status: this.state.isTimeOut ? "시간초과" : "완료"
-                };
-
-                // 컬렉션 이름을 'quiz_results'로 사용
-                db.collection("quiz_results").add(data)
-                .then(() => {
-                    status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold";
-                    status.innerHTML = '<i class="fas fa-check-circle"></i> 제출 완료!';
-                })
-                .catch((error) => {
-                    console.error("Error adding document: ", error);
-                    status.className = "bg-red-100 text-red-700 p-3 rounded text-sm mb-6 border border-red-200";
-                    status.innerHTML = '⚠️ 전송 실패. (네트워크 확인)';
-                });
+                const data = { timestamp: firebase.firestore.FieldValue.serverTimestamp(), timeString: new Date().toLocaleString(), class: this.state.student.class, number: this.state.student.number, name: this.state.student.name, score: this.state.score, status: this.state.isTimeOut ? "시간초과" : "완료" };
+                db.collection("quiz_results").add(data).then(() => { status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold"; status.innerHTML = '<i class="fas fa-check-circle"></i> 제출 완료!'; }).catch((error) => { console.error("Error: ", error); status.className = "bg-red-100 text-red-700 p-3 rounded text-sm mb-6 border border-red-200"; status.innerHTML = '⚠️ 전송 실패. (네트워크 확인)'; });
             },
 
             // --- 교사용 화면 ---
@@ -507,47 +547,133 @@
                 else this.renderBank();
             },
             
-            // --- Firebase 데이터 불러오기 ---
+            // --- Firebase 데이터 관리 ---
             loadServerLogs: function() {
                 if(!db) return;
                 const tbody = document.getElementById('teacher-log-body');
-                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">로딩 중...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">로딩 중...</td></tr>';
                 
                 db.collection("quiz_results").orderBy("timestamp", "desc").limit(50).get().then((querySnapshot) => {
                     let html = '';
                     let count = 0;
-                    let logs = []; // 엑셀 다운로드용
+                    this.state.logs = [];
                     querySnapshot.forEach((doc) => {
                         const d = doc.data();
                         count++;
-                        logs.push(d);
-                        html += `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-stone-500 text-xs">${d.timeString}</td><td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td><td class="p-3 font-bold text-amber-600">${d.score}</td><td class="p-3 text-xs">${d.status}</td></tr>`;
+                        this.state.logs.push(d);
+                        // 삭제 버튼 추가 (doc.id를 이용)
+                        html += `<tr class="border-b hover:bg-stone-50">
+                            <td class="p-3 text-stone-500 text-xs">${d.timeString}</td>
+                            <td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td>
+                            <td class="p-3 font-bold text-amber-600">${d.score}</td>
+                            <td class="p-3 text-xs">${d.status}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="app.deleteLog('${doc.id}')" class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>`;
                     });
-                    tbody.innerHTML = html || '<tr><td colspan="4" class="p-4 text-center">기록 없음</td></tr>';
+                    tbody.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center">기록 없음</td></tr>';
                     document.getElementById('log-count').innerText = `(${count}건)`;
-                    this.state.logs = logs; // 저장
                 }).catch((error) => {
                     console.error("Error getting documents: ", error);
-                    tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-red-500">데이터 로딩 실패</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">데이터 로딩 실패</td></tr>';
                 });
             },
-            // 처음 탭 열릴 때 기본 실행
-            loadLogs: function() { this.loadServerLogs(); },
+            deleteLog: function(docId) {
+                if(confirm("정말 이 기록을 삭제하시겠습니까?")) {
+                    db.collection("quiz_results").doc(docId).delete().then(() => {
+                        alert("삭제되었습니다.");
+                        this.loadServerLogs();
+                    }).catch((error) => {
+                        console.error("Error removing document: ", error);
+                        alert("삭제 실패");
+                    });
+                }
+            },
+            
+            // --- 문제 수정 기능 ---
+            editQuestion: function(id) {
+                const q = this.state.allQuestions.find(q => q.id === id);
+                if(!q) return;
+                
+                document.getElementById('edit-q-id').value = q.id;
+                document.getElementById('edit-q-unit').value = q.unit || 'I. 문명의 발생과 고대 세계의 형성';
+                document.getElementById('edit-q-type').value = q.type;
+                document.getElementById('edit-q-text').value = q.question;
+                document.getElementById('edit-q-answer').value = q.answer;
+                document.getElementById('edit-q-exp').value = q.explanation;
+                
+                this.toggleOptionInput('edit');
+                if (q.options) {
+                    document.getElementById('edit-q-options').value = q.options.join(', ');
+                } else {
+                    document.getElementById('edit-q-options').value = '';
+                }
+                
+                document.getElementById('edit-modal').classList.remove('hidden');
+            },
+            closeEditModal: function() {
+                document.getElementById('edit-modal').classList.add('hidden');
+            },
+            saveEditedQuestion: function() {
+                const id = parseInt(document.getElementById('edit-q-id').value);
+                const unit = document.getElementById('edit-q-unit').value;
+                const type = document.getElementById('edit-q-type').value;
+                const text = document.getElementById('edit-q-text').value;
+                const answer = document.getElementById('edit-q-answer').value;
+                const exp = document.getElementById('edit-q-exp').value;
+                const optText = document.getElementById('edit-q-options').value;
+                
+                let options = null;
+                if (type === 'choice' || type === 'order') {
+                    options = optText.split(',').map(s => s.trim());
+                }
 
-            downloadExcel: function() {
-                if(!this.state.logs || !this.state.logs.length) { alert("데이터가 없습니다."); return; }
-                let csv = "\uFEFF시간,반,번호,이름,점수,상태\n" + this.state.logs.map(l => `${l.timeString},${l.class},${l.number},${l.name},${l.score},${l.status}`).join("\n");
-                const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
-                link.download = "역사평가_결과.csv"; link.click();
+                // customBank에서 수정
+                const customIndex = this.state.customBank.findIndex(q => q.id === id);
+                if (customIndex !== -1) {
+                    this.state.customBank[customIndex] = { id, unit, type, question: text, options, answer, explanation: exp };
+                    localStorage.setItem('hq_custom_q', JSON.stringify(this.state.customBank));
+                } else {
+                    // 기본 문제 수정 시 (메모리 상에서만 수정 - 새로고침하면 초기화됨을 경고하거나 로컬스토리지에 별도 저장 필요하나 여기선 간단히)
+                    alert("기본 문제는 영구 수정되지 않습니다. (새로고침 시 복구됨)");
+                    const defIndex = defaultQuestions.findIndex(q => q.id === id);
+                    if(defIndex !== -1) {
+                        defaultQuestions[defIndex] = { ...defaultQuestions[defIndex], unit, type, question: text, options, answer, explanation: exp };
+                    }
+                }
+                
+                this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
+                this.renderBank();
+                this.closeEditModal();
+                alert("수정되었습니다.");
             },
+
             renderBank: function() {
-                document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-xs text-stone-400">#${q.id}</td><td class="p-3 text-xs"><span class="bg-stone-100 border px-1 rounded">${q.type}</span></td><td class="p-3 text-sm text-stone-800">${q.question}</td><td class="p-3 text-xs font-bold text-amber-700">${q.answer}</td></tr>`).join('');
+                this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
+                document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
+                document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
+                    `<tr class="border-b hover:bg-stone-50 cursor-pointer" onclick="app.editQuestion(${q.id})">
+                        <td class="p-3 text-xs text-stone-400 font-mono">#${q.id}</td>
+                        <td class="p-3">
+                            <div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div>
+                            <span class="bg-stone-100 border px-1 rounded text-xs">${q.type}</span>
+                        </td>
+                        <td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium">${q.question}</td>
+                        <td class="p-3 text-xs font-bold text-amber-700">${q.answer}</td>
+                    </tr>`
+                ).join('');
             },
-            toggleOptionInput: function() {
-                const t = document.getElementById('new-q-type').value;
-                document.getElementById('option-container').classList.toggle('hidden', !(t==='choice'||t==='order'));
+            
+            toggleOptionInput: function(prefix) {
+                const t = document.getElementById(prefix + '-q-type').value;
+                document.getElementById('option-container-' + prefix).classList.toggle('hidden', !(t==='choice'||t==='order'));
             },
+            
             addCustomQuestion: function() {
+                const unit = document.getElementById('new-q-unit').value;
                 const t = document.getElementById('new-q-type').value;
                 const q = document.getElementById('new-q-text').value.trim();
                 const a = document.getElementById('new-q-answer').value.trim();
@@ -559,13 +685,36 @@
                     if(!ot) { alert("보기를 입력하세요."); return; }
                     o = ot.split(',').map(s=>s.trim());
                 }
-                const newQ = { id: 1000+this.state.customBank.length, type: t, question: q, options: o.length?o:null, answer: a, explanation: e||"해설 없음" };
+                
+                // ID 생성 로직 수정 (51번부터 시작)
+                // 기존 최대 ID 찾기
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
+                const newId = maxId + 1;
+
+                const newQ = { 
+                    id: newId, 
+                    unit: unit,
+                    type: t, 
+                    question: q, 
+                    options: o.length ? o : null, 
+                    answer: a, 
+                    explanation: e || "해설 없음" 
+                };
+                
                 this.state.customBank.push(newQ);
+                this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
                 localStorage.setItem('hq_custom_q', JSON.stringify(this.state.customBank));
-                alert("추가됨"); this.renderBank();
+                
+                alert("추가되었습니다. (번호: " + newId + ")");
+                this.renderBank();
             },
             resetCustomQuestions: function() {
-                if(confirm("초기화?")) { this.state.customBank=[]; localStorage.removeItem('hq_custom_q'); this.renderBank(); }
+                if(confirm("초기화?")) { 
+                    this.state.customBank=[]; 
+                    this.state.allQuestions = [...defaultQuestions];
+                    localStorage.removeItem('hq_custom_q'); 
+                    this.renderBank(); 
+                }
             }
         };
 
