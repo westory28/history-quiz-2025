@@ -36,30 +36,26 @@
 
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
-        .admin-table th, .admin-table td {
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: middle;
-        }
-        .admin-table th:not(:last-child), 
-        .admin-table td:not(:last-child) {
-            border-right: 2px solid #d6d3d1; 
-        }
-        .col-answer {
-            background-color: #fffbeb; 
-            color: #b45309;
-            font-weight: bold;
-        }
-        
-        /* [수정] 순서 맞추기 버튼 스타일 명확화 */
-        .seq-btn-default {
-            background-color: white;
-            color: #292524; /* stone-800 */
+        /* 테이블 스타일 */
+        .admin-table th, .admin-table td { border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+        .admin-table th:not(:last-child), .admin-table td:not(:last-child) { border-right: 2px solid #d6d3d1; }
+        .col-answer { background-color: #fffbeb; color: #b45309; font-weight: bold; }
+
+        /* [수정] 순서 맞추기 버튼 가시성 확보 */
+        .seq-btn {
+            transition: all 0.2s;
             border: 1px solid #d6d3d1;
+            font-weight: 500;
+        }
+        .seq-btn-default {
+            background-color: white !important;
+            color: #1c1917 !important; /* Stone 900 */
         }
         .seq-btn-selected {
-            background-color: #d97706 !important; /* amber-600 */
+            background-color: #d97706 !important; /* Amber 600 */
             color: white !important;
-            border: 1px solid #d97706;
+            border-color: #b45309 !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -192,7 +188,7 @@
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <div>
                     <h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2>
-                    <p class="text-xs text-stone-500 mt-1">비밀번호: 0423 | <span class="text-blue-600 font-bold">Firebase 서버 연동 (모든 기기 동기화)</span></p>
+                    <p class="text-xs text-stone-500 mt-1">비밀번호: 0423 | <span class="text-green-600 font-bold">Firebase 서버 연동됨</span> (PC/모바일 동기화)</p>
                 </div>
                 <button onclick="app.closeTeacherMode()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 px-4 py-2 rounded text-sm font-bold">나가기</button>
             </div>
@@ -231,8 +227,8 @@
                         <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
                         <p class="text-xs text-stone-400 ml-2">* 문제를 클릭하면 수정할 수 있습니다.</p>
                     </div>
-                    <button onclick="app.resetCustomQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
-                        <i class="fas fa-trash-alt mr-1"></i> 사용자 추가 문제 초기화
+                    <button onclick="app.resetServerQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
+                        <i class="fas fa-trash-alt mr-1"></i> 서버 문제 전체 초기화 (복구용)
                     </button>
                 </div>
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
@@ -323,7 +319,7 @@
                         <input type="text" id="edit-q-exp" class="w-full p-2 border rounded">
                     </div>
                     <div class="flex gap-2 pt-2">
-                        <button onclick="app.saveEditedQuestion()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700">서버에 저장</button>
+                        <button onclick="app.saveEditedQuestion()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700">저장</button>
                         <button onclick="app.closeEditModal()" class="flex-1 bg-stone-200 text-stone-700 font-bold py-3 rounded hover:bg-stone-300">취소</button>
                     </div>
                 </div>
@@ -361,9 +357,9 @@
             alert("Firebase 설정 중 오류가 발생했습니다.");
         }
 
-        /* 문제 데이터 */
+        /* 복구된 전체 80문제 데이터 (51~80번 추가됨) */
         const defaultQuestions = [
-            // I. 고대
+            // 기존 1~50 (유지)
             { id: 1, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "아테네 민주 정치의 전성기 지도자는?", answer: "페리클레스", options: ["페리클레스", "알렉산드로스", "카이사르", "솔론"], explanation: "페리클레스 시대에 직접 민주주의가 완성됨." },
             { id: 2, unit: "I. 문명의 발생과 고대 세계의 형성", type: "blank", question: "아테네 민주 정치에서 여성, 노예, [ _____ ]은 참정권이 없었다.", answer: "외국인", explanation: "제한적 민주정치였음." },
             { id: 3, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "그리스가 페르시아 전쟁 승리 후 맺은 동맹은?", answer: "델로스 동맹", options: ["펠로폰네소스 동맹", "델로스 동맹", "신성 동맹", "삼국 동맹"], explanation: "아테네가 맹주가 됨." },
@@ -373,7 +369,6 @@
             { id: 7, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "로마 초대 황제 아우구스투스는 누구?", answer: "옥타비아누스", options: ["카이사르", "옥타비아누스", "안토니우스", "네로"], explanation: "제정 시작." },
             { id: 8, unit: "I. 문명의 발생과 고대 세계의 형성", type: "blank", question: "로마의 평화 시대를 [ _____ ] 로마나 라고 한다.", answer: "팍스", explanation: "Pax Romana." },
             { id: 9, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "로마 제국을 4분할 통치한 황제는?", answer: "디오클레티아누스", options: ["콘스탄티누스", "디오클레티아누스", "테오도시우스", "트라야누스"], explanation: "효율적 통치 목적." },
-            // II. 중세
             { id: 10, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "봉건제에서 주군이 봉신에게 준 것은?", answer: "봉토", options: ["봉토", "노예", "화폐", "성경"], explanation: "토지 매개 계약." },
             { id: 11, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "blank", question: "장원에 예속된 농민을 [ _____ ]라고 한다.", answer: "농노", explanation: "거주 이전 자유 없음." },
             { id: 12, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "교황권이 황제권보다 강해진 사건은? (ㅋㄴㅅ의 굴욕)", answer: "카노사의 굴욕", explanation: "하인리히 4세가 굴복함." },
@@ -389,7 +384,6 @@
             { id: 22, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "루터가 비판한 것은?", answer: "면벌부 판매", options: ["성직 매매", "면벌부 판매", "십자군", "마녀 사냥"], explanation: "95개조 반박문." },
             { id: 23, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "예정설을 주장한 사람은?", answer: "칼뱅", options: ["루터", "칼뱅", "헨리 8세", "쯔빙글리"], explanation: "직업 소명설." },
             { id: 24, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "이혼 문제로 종교 개혁한 왕은?", answer: "헨리 8세", options: ["엘리자베스 1세", "헨리 8세", "루이 14세", "찰스 1세"], explanation: "영국 국교회 성립." },
-            // III. 근대
             { id: 25, unit: "III. 지역 세계의 교류와 변화", type: "choice", question: "신항로 개척, 아메리카 발견자는?", answer: "콜럼버스", options: ["바스코 다 가마", "마젤란", "콜럼버스", "디아스"], explanation: "서인도 제도 도착." },
             { id: 26, unit: "III. 지역 세계의 교류와 변화", type: "word", question: "최초 세계 일주 성공 팀은?", answer: "마젤란", explanation: "지구 구형설 입증." },
             { id: 27, unit: "III. 지역 세계의 교류와 변화", type: "blank", question: "왕권은 신이 주었다는 [ _____ ]설.", answer: "왕권신수", explanation: "절대왕정 사상적 기반." },
@@ -405,7 +399,6 @@
             { id: 37, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "산업혁명 발상지는?", answer: "영국", options: ["프랑스", "독일", "미국", "영국"], explanation: "조건이 좋았음." },
             { id: 38, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "blank", question: "제국주의 정당화 논리: [ _____ ]론.", answer: "사회진화", explanation: "스펜서." },
             { id: 39, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "식민지 쟁탈전 가장 치열했던 곳?", answer: "아프리카", options: ["아시아", "아프리카", "아메리카", "유럽"], explanation: "분할됨." },
-            // V. 세계 대전
             { id: 40, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "1차 대전 원인 사건?", answer: "사라예보 사건", options: ["보스턴 차 사건", "사라예보 사건", "피의 일요일", "진주만"], explanation: "오스트리아 황태자 암살." },
             { id: 41, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "영국, 프랑스, 러시아 동맹은?", answer: "삼국 협상", options: ["삼국 동맹", "삼국 협상", "추축국", "연합국"], explanation: "독일 포위." },
             { id: 42, unit: "V. 세계 대전과 사회 변동", type: "word", question: "독일에게 막대한 배상금 물린 조약?", answer: "베르사유 조약", explanation: "2차 대전 씨앗." },
@@ -416,7 +409,39 @@
             { id: 47, unit: "III. 지역 세계의 교류와 변화", type: "blank", question: "루이 14세의 궁전: [ _____ ] 궁전.", answer: "베르사유", explanation: "바로크 양식." },
             { id: 48, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "청교도 혁명 지도자?", answer: "크롬웰", options: ["찰스 1세", "크롬웰", "제임스 2세", "윌리엄 3세"], explanation: "호국경 취임." },
             { id: 49, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "천부인권: 생명, 자유, [  ] 추구.", answer: "행복", explanation: "미국 독립 선언." },
-            { id: 50, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "나폴레옹이 전파한 사상?", answer: "자유주의", options: ["왕권신수설", "자유주의", "복고주의", "전체주의"], explanation: "혁명 정신." }
+            { id: 50, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "나폴레옹이 전파한 사상?", answer: "자유주의", options: ["왕권신수설", "자유주의", "복고주의", "전체주의"], explanation: "혁명 정신." },
+
+            // [추가 복구된 문제 51~80]
+            { id: 51, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "방적기와 방직기 발명으로 발달한 산업은?", answer: "면직물 공업", options: ["면직물 공업", "제철 공업", "석유 화학", "자동차"], explanation: "산업혁명의 시작." },
+            { id: 52, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "제임스 와트가 개량한 동력 기관은?", answer: "증기 기관", explanation: "공장제 기계 공업의 핵심." },
+            { id: 53, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "blank", question: "스펀서가 주장한 [ _____ ]론은 제국주의 침략을 옹호했다.", answer: "사회진화", explanation: "약육강식 논리." },
+            { id: 54, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "영국의 종단 정책 거점 도시가 아닌 것은?", answer: "캘커타", options: ["카이로", "케이프타운", "캘커타", "수에즈"], explanation: "캘커타는 3C 정책(횡단) 거점." },
+            { id: 55, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "프랑스의 아프리카 식민지 연결 정책은?", answer: "횡단 정책", options: ["종단 정책", "횡단 정책", "3B 정책", "3C 정책"], explanation: "알제리와 마다가스카르 연결." },
+            { id: 56, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "영국의 종단 정책과 프랑스의 횡단 정책이 충돌한 사건은?", answer: "파쇼다 사건", explanation: "수단 파쇼다에서 대립." },
+            { id: 57, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "독일의 3B 정책에 포함되지 않는 도시는?", answer: "베이징", options: ["베를린", "비잔티움", "바그다드", "베이징"], explanation: "베이징은 중국." },
+            { id: 58, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "1차 대전 중 독일이 선언한 해상 작전은?", answer: "무제한 잠수함 작전", options: ["무제한 잠수함 작전", "바다사자 작전", "진주만 공습", "노르망디 상륙"], explanation: "미국 참전의 계기." },
+            { id: 59, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "1차 대전은 전방과 후방의 구분이 없는 [ _____ ]전의 양상을 띠었다.", answer: "총력", explanation: "국가의 모든 역량이 동원됨." },
+            { id: 60, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "러시아 혁명을 이끈 볼셰비키 지도자는?", answer: "레닌", options: ["레닌", "스탈린", "차르 니콜라이 2세", "고르바초프"], explanation: "최초의 사회주의 국가 수립." },
+            { id: 61, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "윌슨이 제창한 평화 원칙 중 하나는?", answer: "민족 자결 주의", options: ["민족 자결 주의", "제국주의 강화", "군비 증강", "식민지 확대"], explanation: "식민지 민족에게 희망을 줌." },
+            { id: 62, unit: "V. 세계 대전과 사회 변동", type: "word", question: "국제 평화 유지를 위해 창설된 최초의 국제기구는?", answer: "국제 연맹", explanation: "미국 불참, 무력 제재 수단 부재의 한계." },
+            { id: 63, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "간디의 비폭력 [ _____ ] 운동.", answer: "불복종", explanation: "영국 상품 불매 등." },
+            { id: 64, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "중국의 반제국주의 반봉건 운동은?", answer: "5.4 운동", options: ["3.1 운동", "5.4 운동", "신해혁명", "의화단 운동"], explanation: "파리 강화 회의 결과에 반발." },
+            { id: 65, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "경제 대공황의 시발점이 된 사건은?", answer: "미국 주식 폭락", options: ["미국 주식 폭락", "독일 배상금 거부", "소련 건국", "석유 파동"], explanation: "검은 목요일." },
+            { id: 66, unit: "V. 세계 대전과 사회 변동", type: "word", question: "영국과 프랑스가 대공황 극복을 위해 식민지를 묶은 경제 체제는?", answer: "블록 경제", explanation: "파운드 블록, 금 블록 등." },
+            { id: 67, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "이탈리아의 전체주의 정당은?", answer: "파시스트당", options: ["나치스", "파시스트당", "공산당", "사회당"], explanation: "무솔리니가 이끎." },
+            { id: 68, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "독일의 전체주의 정당은?", answer: "나치스", options: ["나치스", "파시스트당", "볼셰비키", "민주당"], explanation: "히틀러가 이끎." },
+            { id: 69, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "독일, 이탈리아, 일본이 맺은 군사 동맹: [ _____ ]국.", answer: "추축", explanation: "추축국 vs 연합국." },
+            { id: 70, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "2차 대전의 발발 원인이 된 독일의 침공 지역은?", answer: "폴란드", options: ["프랑스", "폴란드", "소련", "영국"], explanation: "폴란드 침공으로 영/프 선전포고." },
+            { id: 71, unit: "V. 세계 대전과 사회 변동", type: "word", question: "일본의 기습 공격으로 태평양 전쟁이 시작된 곳은?", answer: "진주만", explanation: "미국 하와이 진주만." },
+            { id: 72, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "연합국이 승기를 잡은 결정적 상륙 작전은?", answer: "노르망디 상륙 작전", options: ["인천 상륙 작전", "노르망디 상륙 작전", "갈리폴리 상륙", "오키나와 상륙"], explanation: "프랑스 해방의 계기." },
+            { id: 73, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "2차 대전 후 창설된 국제 평화 기구는?", answer: "국제 연합", options: ["국제 연맹", "국제 연합", "유럽 연합", "나토"], explanation: "UN, 군사 제재 가능." },
+            { id: 74, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "세포이 항쟁이 일어난 나라는?", answer: "인도", options: ["인도", "중국", "이집트", "베트남"], explanation: "영국의 식민 지배에 저항." },
+            { id: 75, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "청나라와 영국 사이의 무역 불균형으로 일어난 전쟁은?", answer: "아편 전쟁", explanation: "난징 조약 체결." },
+            { id: 76, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "일본이 근대화를 위해 단행한 개혁은?", answer: "메이지 유신", options: ["메이지 유신", "양무 운동", "변법 자강 운동", "갑신정변"], explanation: "서양 문물 적극 수용." },
+            { id: 77, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "소련의 경제 개발 계획: [ _ ]개년 계획.", answer: "5", explanation: "스탈린의 중공업 육성." },
+            { id: 78, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "히틀러가 저술한 책 이름은?", answer: "나의 투쟁", options: ["나의 투쟁", "자본론", "국부론", "사회계약론"], explanation: "나치즘의 교리." },
+            { id: 79, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "스페인 내전 당시 피카소가 그린 반전 그림은?", answer: "게르니카", options: ["게르니카", "절규", "해바라기", "별이 빛나는 밤"], explanation: "나치의 민간인 폭격 비판." },
+            { id: 80, unit: "V. 세계 대전과 사회 변동", type: "word", question: "미국이 일본에 원자폭탄을 투하한 두 도시는? (히로시마, [ _____ ])", answer: "나가사키", explanation: "전쟁 종결." }
         ];
 
         /* 앱 로직 */
@@ -427,33 +452,46 @@
                 const btnTeacher = document.getElementById('btn-teacher-mode');
                 if(btnTeacher) btnTeacher.onclick = () => this.toggleTeacherMode();
                 
-                // [기기 간 동기화를 위해 사용자 문제 불러오기 로직 변경]
-                // 기존 localStorage 로직은 유지하되, 추후 Firestore 연동 시 대체 가능
-                // 현재는 localStorage를 '서버' 대용으로 사용하고 있음에 주의
-                // (선생님 요청: "파이어베이스로 데이터 연동해서 어느 디바이스에서 문제 은행을 봐도 업데이트가 되도록 수정")
-                
-                this.loadCustomQuestionsFromFirebase();
+                // [서버에서 문제 불러오기 (동기화)]
+                this.loadQuestionsFromFirebase();
             },
 
-            // --- Firestore에서 문제 불러오기 ---
-            loadCustomQuestionsFromFirebase: function() {
-                if(!db) return;
+            loadQuestionsFromFirebase: function() {
+                if(!db) { 
+                    // DB 연결 실패 시 로컬 기본값 사용
+                    this.state.allQuestions = [...defaultQuestions];
+                    return;
+                }
+
+                // 1. 서버에서 커스텀 문제 가져오기
                 db.collection("quiz_questions").get().then((querySnapshot) => {
-                    const loadedData = [];
-                    querySnapshot.forEach((doc) => {
-                        loadedData.push(doc.data());
-                    });
-                    
-                    // 불러온 데이터 정렬
-                    loadedData.sort((a, b) => a.id - b.id);
-                    this.state.customBank = loadedData;
-                    
-                    // 전체 문제 리스트 업데이트
-                    this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
-                    console.log("Firebase 문제 로드 완료:", this.state.allQuestions.length);
+                    if (querySnapshot.empty) {
+                        // 서버가 비어있으면 기본 80문제 업로드 (최초 1회 실행 효과)
+                        this.uploadDefaultQuestions();
+                    } else {
+                        const loadedData = [];
+                        querySnapshot.forEach((doc) => {
+                            loadedData.push(doc.data());
+                        });
+                        // ID 순 정렬
+                        loadedData.sort((a, b) => a.id - b.id);
+                        this.state.allQuestions = loadedData;
+                        console.log("서버에서 문제 로드 완료:", this.state.allQuestions.length);
+                    }
                 }).catch((error) => {
                     console.error("문제 로드 실패:", error);
-                    // 실패 시 기본 문제만 사용
+                    this.state.allQuestions = [...defaultQuestions];
+                });
+            },
+
+            uploadDefaultQuestions: function() {
+                const batch = db.batch();
+                defaultQuestions.forEach((q) => {
+                    const docRef = db.collection("quiz_questions").doc(String(q.id));
+                    batch.set(docRef, q);
+                });
+                batch.commit().then(() => {
+                    console.log("기본 문제 서버 업로드 완료");
                     this.state.allQuestions = [...defaultQuestions];
                 });
             },
@@ -466,17 +504,15 @@
                 if(!cls || !num || !name) { alert("정보를 모두 입력하세요."); return; }
                 this.state.student = { class:cls, number:num, name:name };
                 
-                // 최신 문제 리스트 사용
-                // (init에서 로드되지만, 혹시 모르니 다시 병합)
-                // this.state.allQuestions 는 이미 로드됨.
-                
+                if(this.state.allQuestions.length === 0) {
+                     this.state.allQuestions = [...defaultQuestions]; // 안전장치
+                }
                 const shuffled = this.shuffleArray([...this.state.allQuestions]);
                 this.state.questions = shuffled.slice(0, 5);
                 this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; this.state.isTimeOut = false;
                 this.showView('view-quiz'); this.renderQuestion(); this.startTimer();
             },
             
-            // ... (기존 타이머, 셔플 등 로직 동일)
             shuffleArray: function(array) {
                 for (let i = array.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -539,33 +575,38 @@
                     const box = document.createElement('div'); box.className="border-2 dashed border-amber-300 rounded p-4 mb-3 bg-amber-50 min-h-[50px] flex flex-wrap gap-2";
                     const opts = document.createElement('div'); opts.className="flex flex-wrap gap-2";
                     
-                    // [수정] 순서 맞추기 버튼 스타일 적용 (흰 글씨 문제 해결)
-                    // 선택된 항목
+                    // [수정] 순서 맞추기 버튼 스타일 (가시성 확보)
+                    const renderButton = (text, isSelected) => {
+                        const btn = document.createElement('button');
+                        btn.innerText = text;
+                        if (isSelected) {
+                             btn.className = "px-3 py-2 rounded shadow-sm text-sm font-bold seq-btn seq-btn-selected";
+                        } else {
+                             btn.className = "px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default";
+                        }
+                        return btn;
+                    };
+
                     this.orderTemp.forEach(opt => {
-                        const btn = document.createElement('button'); 
-                        btn.className="px-3 py-2 rounded shadow-sm text-sm font-bold seq-btn-selected"; 
-                        btn.innerText=opt;
+                        const btn = renderButton(opt, true);
                         btn.onclick = () => {
                             opts.appendChild(btn); 
-                            btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn-default";
+                            btn.className = "px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default";
                             this.orderTemp = this.orderTemp.filter(x=>x!==opt);
                         };
                         box.appendChild(btn);
                     });
 
-                    // 미선택 항목
                     q.options.filter(o => !this.orderTemp.includes(o)).sort(()=>0.5-Math.random()).forEach(opt => {
-                        const btn = document.createElement('button'); 
-                        btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn-default"; 
-                        btn.innerText=opt;
+                        const btn = renderButton(opt, false);
                         btn.onclick = () => {
                             if(btn.parentElement===opts) { 
                                 box.appendChild(btn); 
-                                btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn-selected";
+                                btn.className = "px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-selected";
                                 this.orderTemp.push(opt); 
                             } else { 
                                 opts.appendChild(btn); 
-                                btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn-default";
+                                btn.className = "px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default";
                                 this.orderTemp = this.orderTemp.filter(x=>x!==opt); 
                             }
                         };
@@ -582,7 +623,6 @@
                 }
             },
             
-            // ... (이전 문제, 제출, 종료 함수들 동일)
             prevQuestion: function() {
                 const q = this.state.questions[this.state.currentIndex];
                 if (q.type === 'order') {
@@ -590,7 +630,11 @@
                 } else {
                     if (this.tempAnswer) this.state.answers[q.id] = this.tempAnswer;
                 }
-                if (this.state.currentIndex > 0) { this.state.currentIndex--; this.renderQuestion(); }
+                
+                if (this.state.currentIndex > 0) {
+                    this.state.currentIndex--;
+                    this.renderQuestion();
+                }
             },
 
             submitAnswer: function() {
@@ -626,7 +670,7 @@
                 list.innerHTML = this.state.incorrectDetails.length===0 ? '<div class="text-center py-4">만점입니다! 🎉</div>' : this.state.incorrectDetails.map(d => `<div class="border-b pb-3 last:border-0"><p class="font-bold text-stone-800 mb-1">Q. ${d.q}</p><div class="flex gap-2 text-xs mb-2"><span class="text-red-600 bg-red-50 px-2 py-1 rounded">내 답: ${d.u}</span><span class="text-green-600 bg-green-50 px-2 py-1 rounded font-bold">정답: ${d.a}</span></div><p class="text-xs text-stone-500 bg-stone-50 p-2 rounded">${d.exp}</p></div>`).join('');
             },
 
-            // --- Firebase 저장 (성적) ---
+            // --- Firebase 저장 ---
             saveToFirebase: function() {
                 const status = document.getElementById('submission-status');
                 if(!db) { status.innerHTML = "⚠️ DB 연결 실패 (설정 필요)"; return; }
@@ -657,59 +701,94 @@
                 else this.renderBank();
             },
             
+            // --- Firebase 데이터 관리 ---
             loadServerLogs: function() {
                 if(!db) return;
                 const tbody = document.getElementById('teacher-log-body');
                 tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">로딩 중...</td></tr>';
+                
                 db.collection("quiz_results").orderBy("timestamp", "desc").limit(50).get().then((querySnapshot) => {
-                    let html = ''; let count = 0; this.state.logs = [];
+                    let html = '';
+                    let count = 0;
+                    this.state.logs = [];
                     querySnapshot.forEach((doc) => {
-                        const d = doc.data(); count++; this.state.logs.push(d);
-                        html += `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-stone-500 text-xs">${d.timeString}</td><td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td><td class="p-3 font-bold text-amber-600">${d.score}</td><td class="p-3 text-xs">${d.status}</td><td class="p-3 text-center"><button onclick="app.deleteLog('${doc.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+                        const d = doc.data();
+                        count++;
+                        this.state.logs.push(d);
+                        html += `<tr class="border-b hover:bg-stone-50">
+                            <td class="p-3 text-stone-500 text-xs">${d.timeString}</td>
+                            <td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td>
+                            <td class="p-3 font-bold text-amber-600">${d.score}</td>
+                            <td class="p-3 text-xs">${d.status}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="app.deleteLog('${doc.id}')" class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>`;
                     });
                     tbody.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center">기록 없음</td></tr>';
                     document.getElementById('log-count').innerText = `(${count}건)`;
-                }).catch((error) => { console.error(error); tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">데이터 로딩 실패</td></tr>'; });
+                }).catch((error) => {
+                    console.error("Error getting documents: ", error);
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">데이터 로딩 실패</td></tr>';
+                });
             },
             deleteLog: function(docId) {
-                if(confirm("기록을 삭제하시겠습니까?")) { db.collection("quiz_results").doc(docId).delete().then(() => { alert("삭제되었습니다."); this.loadServerLogs(); }); }
+                if(confirm("정말 이 기록을 삭제하시겠습니까?")) {
+                    db.collection("quiz_results").doc(docId).delete().then(() => {
+                        alert("삭제되었습니다.");
+                        this.loadServerLogs();
+                    }).catch((error) => {
+                        console.error("Error removing document: ", error);
+                        alert("삭제 실패");
+                    });
+                }
             },
             downloadExcel: function() {
                 if(!this.state.logs || !this.state.logs.length) { alert("데이터가 없습니다."); return; }
                 let csv = "\uFEFF시간,반,번호,이름,점수,상태\n" + this.state.logs.map(l => `${l.timeString},${l.class},${l.number},${l.name},${l.score},${l.status}`).join("\n");
-                const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv); link.download = "역사평가_결과.csv"; link.click();
+                const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+                link.download = "역사평가_결과.csv"; link.click();
             },
             
-            // --- 문제 수정 (Firebase 저장) ---
+            // --- 문제 수정 기능 ---
             editQuestion: function(id) {
                 const q = this.state.allQuestions.find(q => q.id === id);
                 if(!q) return;
+                
                 document.getElementById('edit-q-id').value = q.id;
                 document.getElementById('edit-q-unit').value = q.unit || 'I. 문명의 발생과 고대 세계의 형성';
                 document.getElementById('edit-q-type').value = q.type;
                 document.getElementById('edit-q-text').value = q.question;
                 document.getElementById('edit-q-answer').value = q.answer;
                 document.getElementById('edit-q-exp').value = q.explanation;
+                
                 this.toggleOptionInput('edit');
-                if (q.options) document.getElementById('edit-q-options').value = q.options.join(', ');
-                else document.getElementById('edit-q-options').value = '';
+                if (q.options) {
+                    document.getElementById('edit-q-options').value = q.options.join(', ');
+                } else {
+                    document.getElementById('edit-q-options').value = '';
+                }
+                
                 document.getElementById('edit-modal').classList.remove('hidden');
             },
-            closeEditModal: function() { document.getElementById('edit-modal').classList.add('hidden'); },
-            
+            closeEditModal: function() {
+                document.getElementById('edit-modal').classList.add('hidden');
+            },
             saveEditedQuestion: function() {
                 const id = parseInt(document.getElementById('edit-q-id').value);
-                // 기본 문제는 수정 불가 알림 (단순 메모리 수정만) - 실제 서비스라면 기본 문제도 DB에 있어야 함
-                if (id <= 50) { alert("기본 문제(1~50번)는 영구 수정할 수 없습니다."); return; }
-
                 const unit = document.getElementById('edit-q-unit').value;
                 const type = document.getElementById('edit-q-type').value;
                 const text = document.getElementById('edit-q-text').value;
                 const answer = document.getElementById('edit-q-answer').value;
                 const exp = document.getElementById('edit-q-exp').value;
                 const optText = document.getElementById('edit-q-options').value;
+                
                 let options = null;
-                if (type === 'choice' || type === 'order') options = optText.split(',').map(s => s.trim());
+                if (type === 'choice' || type === 'order') {
+                    options = optText.split(',').map(s => s.trim());
+                }
 
                 const updatedQ = { id, unit, type, question: text, options, answer, explanation: exp };
                 
@@ -717,20 +796,28 @@
                 db.collection("quiz_questions").doc(String(id)).set(updatedQ).then(() => {
                     alert("수정되었습니다.");
                     this.closeEditModal();
-                    this.loadCustomQuestionsFromFirebase(); // 리스트 갱신
+                    this.loadQuestionsFromFirebase(); // 리스트 갱신
                 }).catch(e => alert("수정 실패: " + e));
             },
 
             renderBank: function() {
-                // this.state.allQuestions 사용
                 document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
+                // [수정] 테이블 HTML 생성 - 구분선 및 정답칸 배경 적용
                 document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
                     `<tr class="border-b hover:bg-stone-50 cursor-pointer" onclick="app.editQuestion(${q.id})">
                         <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
-                        <td class="p-3"><div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div></td>
-                        <td class="p-3 text-center"><span class="bg-stone-100 border px-1 rounded text-xs">${q.type}</span></td>
-                        <td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium break-words max-w-xs border-r border-stone-300">${q.question}</td>
-                        <td class="p-3 text-xs font-bold text-amber-700 col-answer text-center">${q.answer}</td>
+                        <td class="p-3">
+                            <div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div>
+                        </td>
+                        <td class="p-3 text-center">
+                            <span class="bg-stone-100 border px-1 rounded text-xs">${q.type}</span>
+                        </td>
+                        <td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium break-words max-w-xs border-r border-stone-300">
+                            ${q.question}
+                        </td>
+                        <td class="p-3 text-xs font-bold text-amber-700 col-answer text-center">
+                            ${q.answer}
+                        </td>
                     </tr>`
                 ).join('');
             },
@@ -741,12 +828,12 @@
             },
             
             updateNextQuestionNumber: function() {
-                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
-                const nextId = maxId + 1;
+                // [핵심 수정] 최대값 + 1 로직 (기본 80번 보장)
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 80); 
+                const nextId = (maxId > 0) ? maxId + 1 : 81;
                 document.getElementById('next-q-id-display').innerText = `현재 ${nextId}번 문제 생성 중`;
             },
             
-            // --- 문제 추가 (Firebase 저장) ---
             addCustomQuestion: function() {
                 const unit = document.getElementById('new-q-unit').value;
                 const t = document.getElementById('new-q-type').value;
@@ -761,9 +848,9 @@
                     o = ot.split(',').map(s=>s.trim());
                 }
                 
-                // 번호 부여
-                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
-                const newId = maxId + 1;
+                // [핵심 수정] 81번부터 번호 매기기 로직
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 80);
+                const newId = (maxId > 0) ? maxId + 1 : 81;
 
                 const newQ = { 
                     id: newId, 
@@ -784,27 +871,24 @@
                     document.getElementById('new-q-answer').value = '';
                     document.getElementById('new-q-exp').value = '';
                     // 갱신
-                    this.loadCustomQuestionsFromFirebase();
+                    this.loadQuestionsFromFirebase();
                     this.updateNextQuestionNumber(); 
                 }).catch(err => alert("저장 실패: " + err));
             },
             
-            resetCustomQuestions: function() {
-                if(confirm("모든 사용자 추가 문제를 삭제하시겠습니까? (기본 50문제만 남습니다)")) { 
-                    // Firestore에서 50번 초과 문서 모두 삭제
+            resetServerQuestions: function() {
+                if(confirm("서버에 저장된 모든 사용자 추가 문제를 삭제하시겠습니까? (기본 80문제만 남습니다)")) { 
                     db.collection("quiz_questions").get().then(snapshot => {
                         const batch = db.batch();
                         snapshot.docs.forEach(doc => {
-                            if (parseInt(doc.id) > 50) {
+                            if (parseInt(doc.id) > 80) { // 81번부터 삭제
                                 batch.delete(doc.ref);
                             }
                         });
                         return batch.commit();
                     }).then(() => {
                         alert("초기화되었습니다.");
-                        this.state.customBank = [];
-                        this.state.allQuestions = [...defaultQuestions];
-                        this.renderBank();
+                        this.uploadDefaultQuestions(); // 리셋
                         if(!document.getElementById('tab-add').classList.contains('hidden')) {
                             this.updateNextQuestionNumber();
                         }
