@@ -502,7 +502,7 @@
             toggleTeacherMode: function() {
                 if(this.state.isTeacherMode) { this.closeTeacherMode(); return; }
                 const pw = prompt("교사용 비밀번호:");
-                if(pw === TEACHER_PW) { this.state.isTeacherMode=true; this.showView('view-teacher'); this.loadLogs(); }
+                if(pw === '19960423') { this.state.isTeacherMode=true; this.showView('view-teacher'); this.loadLogs(); }
                 else if(pw!==null) alert("비밀번호 오류");
             },
             closeTeacherMode: function() { this.state.isTeacherMode=false; this.showView('view-login'); },
