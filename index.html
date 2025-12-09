@@ -200,7 +200,7 @@
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <div>
                     <h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2>
-                    <p class="text-xs text-stone-500 mt-1">비밀번호: 0423 | <span class="text-blue-600 font-bold">Firebase 연동됨</span></p>
+                    <p class="text-xs text-stone-500 mt-1">비밀번호: 19960423 | <span class="text-blue-600 font-bold">Firebase 연동됨</span></p>
                 </div>
                 <button onclick="app.closeTeacherMode()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 px-4 py-2 rounded text-sm font-bold">나가기</button>
             </div>
@@ -722,7 +722,7 @@
             toggleTeacherMode: function() {
                 if(this.state.isTeacherMode) { this.closeTeacherMode(); return; }
                 const pw = prompt("교사용 비밀번호:");
-                if(pw==='0423') { this.state.isTeacherMode=true; this.showView('view-teacher'); this.loadLogs(); }
+                if(pw==='19960423') { this.state.isTeacherMode=true; this.showView('view-teacher'); this.loadLogs(); }
                 else if(pw!==null) alert("비밀번호 오류");
             },
             closeTeacherMode: function() { this.state.isTeacherMode=false; this.showView('view-login'); },
