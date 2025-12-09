@@ -36,10 +36,12 @@
 
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
+        /* 테이블 구분선 강화 */
         .admin-table th, .admin-table td {
             border-bottom: 1px solid #e5e7eb;
             vertical-align: middle;
         }
+        /* 세로 구분선 추가 (마지막 칸 제외) */
         .admin-table th:not(:last-child), 
         .admin-table td:not(:last-child) {
             border-right: 2px solid #d6d3d1; 
@@ -219,8 +221,8 @@
                         <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
                         <p class="text-xs text-stone-400 ml-2">* 문제를 클릭하면 수정할 수 있습니다.</p>
                     </div>
-                    <!-- [수정] 초기화 버튼 아주 잘 보이게 변경 -->
-                    <button onclick="app.resetCustomQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-1 rounded text-xs font-bold hover:bg-red-200 transition flex items-center">
+                    <!-- 초기화 버튼 (눈에 잘 띄게 배치) -->
+                    <button onclick="app.resetCustomQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
                         <i class="fas fa-trash-alt mr-1"></i> 사용자 추가 문제 초기화
                     </button>
                 </div>
@@ -416,14 +418,14 @@
                 const btnTeacher = document.getElementById('btn-teacher-mode');
                 if(btnTeacher) btnTeacher.onclick = () => this.toggleTeacherMode();
                 
-                // [자동 복구] 1000번대 ID를 감지하면 51번부터 다시 매김
+                // [자동 복구 및 로드]
                 const saved = localStorage.getItem('hq_custom_q');
                 if (saved) {
                     let loadedData = JSON.parse(saved);
                     // 1000번 이상의 ID가 있는지 확인
                     const hasWrongId = loadedData.some(q => q.id >= 1000);
                     if (hasWrongId) {
-                        // 있다면 51번부터 재정렬
+                        // 있다면 51번부터 재정렬하여 저장
                         loadedData = loadedData.map((q, idx) => {
                             q.id = 51 + idx; 
                             return q;
@@ -608,6 +610,7 @@
                 else this.renderBank();
             },
             
+            // --- Firebase 데이터 관리 ---
             loadServerLogs: function() {
                 if(!db) return;
                 const tbody = document.getElementById('teacher-log-body');
@@ -717,6 +720,7 @@
             renderBank: function() {
                 this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
                 document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
+                // [수정] 테이블 HTML 생성 - 구분선 및 정답칸 배경 적용
                 document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
                     `<tr class="border-b hover:bg-stone-50 cursor-pointer" onclick="app.editQuestion(${q.id})">
                         <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
@@ -742,6 +746,7 @@
             },
             
             updateNextQuestionNumber: function() {
+                // [핵심 수정] 최대값 + 1 로직 (기본 50번 보장)
                 const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
                 const nextId = maxId + 1;
                 document.getElementById('next-q-id-display').innerText = `현재 ${nextId}번 문제 생성 중`;
@@ -761,7 +766,7 @@
                     o = ot.split(',').map(s=>s.trim());
                 }
                 
-                // 51번부터 번호 매기기 로직
+                // [핵심 수정] 51번부터 번호 매기기 로직
                 const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0);
                 const newId = (maxId > 0) ? maxId + 1 : 51;
 
@@ -790,7 +795,7 @@
                 this.updateNextQuestionNumber(); 
             },
             resetCustomQuestions: function() {
-                if(confirm("초기화? (사용자가 추가한 모든 문제가 삭제됩니다)")) { 
+                if(confirm("초기화? (1000번대 문제 등 사용자가 추가한 모든 문제가 삭제됩니다)")) { 
                     this.state.customBank=[]; 
                     this.state.allQuestions = [...defaultQuestions];
                     localStorage.removeItem('hq_custom_q'); 
