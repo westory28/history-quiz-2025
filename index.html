@@ -72,7 +72,6 @@
     <header class="bg-stone-900 text-white py-4 shadow-lg sticky top-0 z-40">
         <div class="container mx-auto px-4 flex justify-between items-center relative">
             <h1 class="text-lg md:text-xl font-bold tracking-tight truncate pr-2">
-                <!-- [수정] 아이콘 제거, 이모지 추가 -->
                 <span class="mr-2">🧑‍🏫</span> 용신중학교 역사교사 방재석
             </h1>
             <button id="btn-teacher-mode" class="teacher-btn">
@@ -130,11 +129,12 @@
             </div>
 
             <div class="bg-white p-6 md:p-10 rounded-lg min-h-[400px] flex flex-col relative shadow-md">
-                <div class="flex justify-between items-start mb-2">
-                    <span id="question-unit" class="text-xs font-bold text-stone-400 bg-stone-100 px-2 py-1 rounded">단원 정보</span>
-                    <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">
-                        유형
-                    </span>
+                <div class="mb-4">
+                    <!-- [추가] 단원명 표시 영역 (학생용) -->
+                    <span id="student-question-unit" class="inline-block bg-stone-100 text-stone-500 text-xs font-bold px-2 py-1 rounded mb-1"></span>
+                    <div class="flex justify-between items-center">
+                        <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">유형</span>
+                    </div>
                 </div>
                 
                 <h3 id="question-text" class="text-xl md:text-2xl font-bold mt-2 mb-8 text-stone-900 leading-relaxed serif break-keep">
@@ -209,11 +209,18 @@
 
             <!-- 탭 1: 학생 기록 -->
             <div id="tab-log">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-lg">제출 현황 <span id="log-count" class="text-sm font-normal text-stone-500 ml-2">(로딩중...)</span></h3>
-                    <div class="flex gap-2">
-                        <button onclick="app.loadServerLogs()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-bold shadow"><i class="fas fa-sync-alt mr-1"></i> 새로고침</button>
-                        <button onclick="app.downloadExcel()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-bold shadow"><i class="fas fa-file-excel mr-1"></i> 엑셀 다운</button>
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                    <h3 class="font-bold text-lg flex items-center">제출 현황 <span id="log-count" class="text-sm font-normal text-stone-500 ml-2">(로딩중...)</span></h3>
+                    
+                    <div class="flex gap-2 items-center">
+                        <!-- [추가] 반별 필터 -->
+                        <select id="filter-class" onchange="app.renderLogs()" class="p-2 border rounded text-sm bg-white">
+                            <option value="all">전체 반 보기</option>
+                            <option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option>
+                            <option value="5">5반</option><option value="6">6반</option><option value="7">7반</option><option value="8">8반</option><option value="9">9반</option><option value="10">10반</option>
+                        </select>
+                        <button onclick="app.loadServerLogs()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-bold shadow"><i class="fas fa-sync-alt"></i></button>
+                        <button onclick="app.downloadExcel()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-bold shadow"><i class="fas fa-file-excel mr-1"></i> 엑셀</button>
                     </div>
                 </div>
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
@@ -230,14 +237,29 @@
 
             <!-- 탭 2: 문제 은행 -->
             <div id="tab-bank" class="hidden">
-                <div class="flex justify-between items-center mb-4 bg-stone-50 p-3 rounded border border-stone-200">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4 bg-stone-50 p-3 rounded border border-stone-200 gap-3">
                     <div class="flex items-center gap-2">
                         <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
-                        <p class="text-xs text-stone-400 ml-2">* 돋보기 아이콘을 누르면 학생 화면으로 미리보기 가능</p>
                     </div>
-                    <button onclick="app.resetServerQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
-                        <i class="fas fa-trash-alt mr-1"></i> 문제 전체 초기화 (주의)
-                    </button>
+                    <div class="flex gap-2 flex-wrap">
+                        <!-- [추가] 문제 은행 필터 -->
+                        <select id="bank-sort" onchange="app.renderBank()" class="p-2 border rounded text-xs">
+                            <option value="id">번호순</option>
+                            <option value="unit">단원순</option>
+                            <option value="type">유형순</option>
+                        </select>
+                        <select id="bank-filter-unit" onchange="app.renderBank()" class="p-2 border rounded text-xs w-32">
+                            <option value="all">모든 단원</option>
+                            <option value="I.">I. 고대</option>
+                            <option value="II.">II. 종교/문화</option>
+                            <option value="III.">III. 지역교류</option>
+                            <option value="IV.">IV. 제국주의</option>
+                            <option value="V.">V. 세계대전</option>
+                        </select>
+                        <button onclick="app.resetServerQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
+                            <i class="fas fa-trash-alt mr-1"></i> 초기화
+                        </button>
+                    </div>
                 </div>
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
                     <table class="w-full text-sm text-left admin-table table-bordered">
@@ -404,20 +426,88 @@
                 });
             },
 
-            // --- 퀴즈 로직 ---
-            startQuiz: function() {
+            // --- 퀴즈 로직 (단원별 안배 + 5분컷) ---
+            startQuiz: async function() {
                 const cls = document.getElementById('input-class').value;
                 const num = document.getElementById('input-number').value;
                 const name = document.getElementById('input-name').value.trim();
                 if(!cls || !num || !name) { alert("정보를 모두 입력하세요."); return; }
+                
+                // [추가] 중복 응시 방지 (5분 내)
+                this.showLoading(true);
+                const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+                
+                // Firestore Query for logs
+                try {
+                    const logsRef = db.collection("quiz_results");
+                    const snapshot = await logsRef
+                        .where("class", "==", cls)
+                        .where("number", "==", num)
+                        .where("name", "==", name)
+                        .where("timestamp", ">", fiveMinsAgo)
+                        .get();
+
+                    if (!snapshot.empty) {
+                        this.showLoading(false);
+                        alert("이미 제출하셨습니다. 5분 뒤에 다시 시도할 수 있습니다.");
+                        return;
+                    }
+                } catch(e) {
+                    console.error("중복 체크 오류 (무시하고 진행):", e);
+                }
+                this.showLoading(false);
+
                 this.state.student = { class:cls, number:num, name:name };
                 
                 if(this.state.allQuestions.length === 0) {
                      alert("현재 등록된 문제가 없습니다. 선생님께 문의하세요.");
                      return;
                 }
-                const shuffled = this.shuffleArray([...this.state.allQuestions]);
-                this.state.questions = shuffled.slice(0, 5);
+
+                // [추가] 단원별 안배 로직
+                // 1. 단원별로 분류
+                const unitGroups = {};
+                this.state.allQuestions.forEach(q => {
+                    const u = q.unit || "기타";
+                    if(!unitGroups[u]) unitGroups[u] = [];
+                    unitGroups[u].push(q);
+                });
+
+                // 2. 단원 목록 (5개 가정)
+                const targetUnits = [
+                    "I. 문명의 발생과 고대 세계의 형성",
+                    "II. 세계 종교의 확산과 지역 문화의 형성",
+                    "III. 지역 세계의 교류와 변화",
+                    "IV. 제국주의 침략과 국민 국가 건설 운동",
+                    "V. 세계 대전과 사회 변동"
+                ];
+
+                const selectedQuestions = [];
+                const usedIds = new Set();
+
+                // 3. 각 주요 단원에서 1개씩 뽑기 시도
+                targetUnits.forEach(u => {
+                    if(unitGroups[u] && unitGroups[u].length > 0) {
+                        const randIdx = Math.floor(Math.random() * unitGroups[u].length);
+                        const q = unitGroups[u][randIdx];
+                        selectedQuestions.push(q);
+                        usedIds.add(q.id);
+                    }
+                });
+
+                // 4. 부족한 갯수(5개 미만인 경우) 채우기 (나머지 전체에서 랜덤)
+                if (selectedQuestions.length < 5) {
+                    const remainingPool = this.state.allQuestions.filter(q => !usedIds.has(q.id));
+                    const shuffledRemaining = this.shuffleArray(remainingPool);
+                    const needed = 5 - selectedQuestions.length;
+                    for(let i=0; i<needed; i++) {
+                        if(shuffledRemaining[i]) selectedQuestions.push(shuffledRemaining[i]);
+                    }
+                }
+                
+                // 5. 최종 5문제 셔플 (순서 섞기)
+                this.state.questions = this.shuffleArray(selectedQuestions);
+                
                 this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; this.state.isTimeOut = false;
                 this.showView('view-quiz'); this.renderQuestion(); this.startTimer();
             },
@@ -447,6 +537,11 @@
                 const q = this.state.questions[this.state.currentIndex];
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
                 document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'단답','word':'단답','order':'순서','ox':'O/X'}[q.type] || '문제';
+                
+                // [추가] 학생용 단원 표시
+                const unitEl = document.getElementById('student-question-unit');
+                if(unitEl) unitEl.innerText = q.unit || "기타";
+                
                 document.getElementById('question-text').innerText = q.question;
                 const area = document.getElementById('answer-area'); area.innerHTML = ''; 
                 this.tempAnswer = this.state.answers[q.id] || null; 
@@ -489,20 +584,44 @@
                     const box = document.createElement('div'); box.className="border-2 dashed border-amber-300 rounded p-4 mb-3 bg-amber-50 min-h-[50px] flex flex-wrap gap-2";
                     const opts = document.createElement('div'); opts.className="flex flex-wrap gap-2";
                     
+                    const renderButton = (text, isSelected) => {
+                        const btn = document.createElement('button');
+                        btn.innerText = text;
+                        if (isSelected) btn.className = "seq-btn seq-btn-selected";
+                        else btn.className = "seq-btn seq-btn-default";
+                        return btn;
+                    };
+
                     this.orderTemp.forEach(opt => {
-                        const btn = document.createElement('button'); btn.className="px-3 py-2 rounded shadow-sm text-sm font-bold seq-btn seq-btn-selected"; btn.innerText=opt;
-                        btn.onclick = () => { opts.appendChild(btn); btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default"; this.orderTemp = this.orderTemp.filter(x=>x!==opt); };
+                        const btn = renderButton(opt, true);
+                        btn.onclick = () => {
+                            opts.appendChild(btn); 
+                            btn.className = "seq-btn seq-btn-default";
+                            this.orderTemp = this.orderTemp.filter(x=>x!==opt);
+                        };
                         box.appendChild(btn);
                     });
+
                     q.options.filter(o => !this.orderTemp.includes(o)).sort(()=>0.5-Math.random()).forEach(opt => {
-                        const btn = document.createElement('button'); btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default"; btn.innerText=opt;
-                        btn.onclick = () => { if(btn.parentElement===opts) { box.appendChild(btn); btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-selected"; this.orderTemp.push(opt); } else { opts.appendChild(btn); btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default"; this.orderTemp = this.orderTemp.filter(x=>x!==opt); } };
+                        const btn = renderButton(opt, false);
+                        btn.onclick = () => {
+                            if(btn.parentElement===opts) { 
+                                box.appendChild(btn); 
+                                btn.className = "seq-btn seq-btn-selected";
+                                this.orderTemp.push(opt); 
+                            } else { 
+                                opts.appendChild(btn); 
+                                btn.className = "seq-btn seq-btn-default";
+                                this.orderTemp = this.orderTemp.filter(x=>x!==opt); 
+                            }
+                        };
                         opts.appendChild(btn);
                     });
                     area.append(box, opts);
                 } else {
                     const inp = document.createElement('input'); inp.type="text"; inp.className="w-full p-4 border-b-2 border-stone-300 focus:border-amber-500 text-center text-lg outline-none";
-                    inp.placeholder="정답 입력"; if(this.tempAnswer) inp.value = this.tempAnswer;
+                    inp.placeholder="정답 입력"; 
+                    if(this.tempAnswer) inp.value = this.tempAnswer;
                     inp.oninput = (e) => this.tempAnswer=e.target.value;
                     inp.onkeydown = (e) => { if(e.key==='Enter') this.submitAnswer(); };
                     area.appendChild(inp);
@@ -596,6 +715,80 @@
                     document.getElementById('log-count').innerText = `(${count}건)`;
                 });
             },
+            
+            // [추가] 로그 렌더링 (필터링 적용)
+            renderLogs: function() {
+                const clsFilter = document.getElementById('filter-class').value;
+                const tbody = document.getElementById('teacher-log-body');
+                
+                let filtered = this.state.logs;
+                if (clsFilter !== 'all') {
+                    filtered = filtered.filter(l => l.class === clsFilter);
+                }
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">기록 없음</td></tr>';
+                } else {
+                    let html = '';
+                    filtered.forEach((d) => {
+                        // DB ID는 logs 배열 생성 시 포함되지 않았으므로 다시 렌더링 시 삭제 기능에 문제가 생길 수 있음.
+                        // 하지만 loadServerLogs에서 이미 DOM을 생성하므로 여기서는 간단히 필터만.
+                        // 정확히 하려면 state.logs에 id도 포함해야 함.
+                        // 수정: loadServerLogs에서 state.logs 저장 시 doc.id도 포함하도록 수정함.
+                        html += `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-stone-500 text-xs">${d.timeString}</td><td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td><td class="p-3 font-bold text-amber-600">${d.score}</td><td class="p-3 text-xs">${d.status}</td><td class="p-3 text-center"><button class="text-red-500"><i class="fas fa-history"></i></button></td></tr>`;
+                    });
+                    tbody.innerHTML = html;
+                }
+            },
+            
+            // loadServerLogs 수정 (데이터 저장 구조 변경)
+            loadServerLogs: function() {
+                if(!db) return;
+                const tbody = document.getElementById('teacher-log-body');
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">로딩 중...</td></tr>';
+                db.collection("quiz_results").orderBy("timestamp", "desc").limit(100).get().then((querySnapshot) => {
+                    let logs = [];
+                    querySnapshot.forEach((doc) => {
+                        let d = doc.data();
+                        d.docId = doc.id;
+                        logs.push(d);
+                    });
+                    this.state.logs = logs;
+                    this.renderLogs(); // 최초 렌더링
+                    document.getElementById('log-count').innerText = `(최근 ${logs.length}건)`;
+                });
+            },
+            
+            renderLogs: function() {
+                const clsFilter = document.getElementById('filter-class').value;
+                const tbody = document.getElementById('teacher-log-body');
+                
+                let filtered = this.state.logs;
+                if (clsFilter !== 'all') {
+                    filtered = filtered.filter(l => l.class === clsFilter);
+                }
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">기록 없음</td></tr>';
+                } else {
+                    let html = '';
+                    filtered.forEach((d) => {
+                         html += `<tr class="border-b hover:bg-stone-50">
+                            <td class="p-3 text-stone-500 text-xs">${d.timeString}</td>
+                            <td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td>
+                            <td class="p-3 font-bold text-amber-600">${d.score}</td>
+                            <td class="p-3 text-xs">${d.status}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="app.deleteLog('${d.docId}')" class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
+                    tbody.innerHTML = html;
+                }
+            },
+
             deleteLog: function(docId) { if(confirm("삭제?")) db.collection("quiz_results").doc(docId).delete().then(() => this.loadServerLogs()); },
             downloadExcel: function() {
                 if(!this.state.logs || !this.state.logs.length) { alert("데이터가 없습니다."); return; }
@@ -605,8 +798,27 @@
             
             // --- 문제 관리 (미리보기, 수정, 추가) ---
             renderBank: function() {
-                document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
-                document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
+                // [추가] 필터링 및 정렬 적용
+                let filtered = [...this.state.allQuestions];
+                
+                // 1. 단원 필터
+                const unitFilter = document.getElementById('bank-filter-unit').value;
+                if (unitFilter !== 'all') {
+                    filtered = filtered.filter(q => (q.unit || "").startsWith(unitFilter));
+                }
+
+                // 2. 정렬
+                const sortType = document.getElementById('bank-sort').value;
+                if (sortType === 'id') {
+                    filtered.sort((a, b) => a.id - b.id);
+                } else if (sortType === 'unit') {
+                    filtered.sort((a, b) => (a.unit || "").localeCompare(b.unit || ""));
+                } else if (sortType === 'type') {
+                    filtered.sort((a, b) => a.type.localeCompare(b.type));
+                }
+
+                document.getElementById('total-q-count').innerText = `(${filtered.length}문항)`;
+                document.getElementById('bank-body').innerHTML = filtered.map(q => 
                     `<tr class="border-b hover:bg-stone-50">
                         <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
                         <td class="p-3"><div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div></td>
