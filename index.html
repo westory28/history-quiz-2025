@@ -38,14 +38,17 @@
 
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
+        /* 테이블 스타일 강화 */
         .admin-table th, .admin-table td { border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
         .admin-table th:not(:last-child), .admin-table td:not(:last-child) { border-right: 2px solid #d6d3d1; }
         .col-answer { background-color: #fffbeb; color: #b45309; font-weight: bold; }
 
+        /* 순서 맞추기 버튼 */
         .seq-btn { padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #d1d5db; transition: all 0.2s; cursor: pointer; margin: 4px; }
         .seq-btn-default { background-color: #ffffff !important; color: #1f2937 !important; }
         .seq-btn-selected { background-color: #d97706 !important; color: #ffffff !important; border-color: #b45309 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
+        /* O/X 버튼 */
         .ox-btn { height: 80px; font-size: 2.5rem; font-weight: 900; border-radius: 12px; transition: all 0.2s; border: 2px solid transparent; width: 100%; }
         .ox-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-o { background-color: #e0f2fe; color: #0284c7; border-color: #0284c7; }
@@ -53,15 +56,17 @@
         .btn-x { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; }
         .btn-x.selected { background-color: #dc2626; color: white; }
 
-        #loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        /* 로딩 오버레이 */
+        #loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
         
-        /* 로고 버튼 스타일 (커서 포인터) */
+        /* 로고 버튼 스타일 */
         .logo-btn { cursor: pointer; transition: opacity 0.2s; }
         .logo-btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body class="text-stone-800 min-h-screen flex flex-col">
 
+    <!-- 로딩 오버레이 -->
     <div id="loading-overlay">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-amber-600 border-solid mb-4"></div>
         <p class="text-xl font-bold text-stone-700" id="loading-text">데이터 처리 중...</p>
@@ -70,7 +75,6 @@
     <!-- 상단 헤더 -->
     <header class="bg-stone-900 text-white py-4 shadow-lg sticky top-0 z-40">
         <div class="container mx-auto px-4 flex justify-between items-center relative">
-            <!-- [수정] 로고 클릭 이벤트 추가 -->
             <h1 class="text-lg md:text-xl font-bold tracking-tight truncate pr-2 logo-btn" onclick="app.goToMain()">
                 <span class="mr-2">🧑‍🏫</span> 용신중학교 역사교사 방재석
             </h1>
@@ -129,11 +133,12 @@
             </div>
 
             <div class="bg-white p-6 md:p-10 rounded-lg min-h-[400px] flex flex-col relative shadow-md">
-                <div class="flex justify-between items-start mb-2">
-                    <span id="question-unit" class="text-xs font-bold text-stone-400 bg-stone-100 px-2 py-1 rounded">단원 정보</span>
-                    <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">
-                        유형
-                    </span>
+                <div class="mb-4">
+                    <!-- [수정] 단원명 표시 영역 (학생용) -->
+                    <span id="student-question-unit" class="inline-block bg-stone-100 text-stone-500 text-xs font-bold px-3 py-1 rounded-md mb-2 border border-stone-200"></span>
+                    <div class="flex justify-between items-center">
+                        <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">유형</span>
+                    </div>
                 </div>
                 
                 <h3 id="question-text" class="text-xl md:text-2xl font-bold mt-2 mb-8 text-stone-900 leading-relaxed serif break-keep">
@@ -254,7 +259,7 @@
                             <option value="V.">V. 세계대전</option>
                         </select>
                         <button onclick="app.resetServerQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
-                            <i class="fas fa-trash-alt mr-1"></i> 문제 전체 초기화 (주의)
+                            <i class="fas fa-trash-alt mr-1"></i> 초기화
                         </button>
                     </div>
                 </div>
@@ -391,13 +396,13 @@
                 this.loadQuestionsFromFirebase();
             },
             
-            // [추가] 메인 이동 및 이탈 방지
+            // 메인 이동 및 이탈 방지
             goToMain: function() {
                 if(this.state.isQuizActive) {
                     if(confirm("정말 문제 응시를 포기하고 메인 화면으로 이동하겠습니까? 이동 시 5분 간 재응시 불가합니다.")) {
-                        // 오답 처리 및 강제 종료
-                        this.state.isTimeOut = true; // 강제 종료 플래그
-                        this.saveToFirebase(); // 현재 상태로 저장 (0점 처리 등은 finishQuiz에서 로직에 따라 다름, 여기선 기록 남기기 위함)
+                        // 오답 처리
+                        this.state.isTimeOut = true; 
+                        this.saveToFirebase(); // 포기 기록 저장 (5분 룰 적용됨)
                         this.showView('view-login');
                         this.state.isQuizActive = false;
                         clearInterval(this.state.timer);
@@ -446,28 +451,48 @@
                 const name = document.getElementById('input-name').value.trim();
                 if(!cls || !num || !name) { alert("정보를 모두 입력하세요."); return; }
                 
-                // [추가] 중복 응시 방지 (5분 내)
+                // [수정: 철저한 5분 중복 체크]
                 this.showLoading(true);
-                const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
                 
-                // Firestore Query for logs
                 try {
+                    // 서버가 아닌 클라이언트 시간 기준으로 5분 전 계산 (간단하지만 서버 시간 필드 활용 시 더 정확)
+                    // 여기서는 직관적으로 최근 기록을 모두 가져와서 JS로 시간 비교
                     const logsRef = db.collection("quiz_results");
+                    // 쿼리 복잡도 줄이기 위해 학생 정보로만 필터링 후 메모리에서 시간 체크
                     const snapshot = await logsRef
                         .where("class", "==", cls)
                         .where("number", "==", num)
                         .where("name", "==", name)
-                        .where("timestamp", ">", fiveMinsAgo)
                         .get();
 
-                    if (!snapshot.empty) {
-                        this.showLoading(false);
-                        alert("이미 제출하셨습니다. 5분 뒤에 다시 시도할 수 있습니다.");
-                        return;
+                    let recentSubmission = null;
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.timestamp) {
+                            const date = data.timestamp.toDate(); // Firestore Timestamp -> JS Date
+                            if (!recentSubmission || date > recentSubmission) {
+                                recentSubmission = date;
+                            }
+                        }
+                    });
+
+                    if (recentSubmission) {
+                        const now = new Date();
+                        const diffMs = now - recentSubmission;
+                        const diffMins = diffMs / (1000 * 60);
+                        
+                        if (diffMins < 5) {
+                            this.showLoading(false);
+                            const waitTime = Math.ceil(5 - diffMins);
+                            alert(`이미 제출하셨습니다.\n${waitTime}분 뒤에 다시 시도할 수 있습니다.`);
+                            return;
+                        }
                     }
                 } catch(e) {
-                    console.error("중복 체크 오류 (무시하고 진행):", e);
+                    console.error("중복 체크 중 오류:", e);
+                    // 오류 발생 시 일단 진행 (학생 피해 방지)
                 }
+                
                 this.showLoading(false);
 
                 this.state.student = { class:cls, number:num, name:name };
@@ -522,7 +547,7 @@
                 this.state.questions = this.shuffleArray(selectedQuestions);
                 
                 this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; this.state.isTimeOut = false;
-                this.state.isQuizActive = true; // 퀴즈 시작 플래그
+                this.state.isQuizActive = true; 
                 this.showView('view-quiz'); this.renderQuestion(); this.startTimer();
             },
             
@@ -552,7 +577,7 @@
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
                 document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'단답','word':'단답','order':'순서','ox':'O/X'}[q.type] || '문제';
                 
-                // [추가] 학생용 단원 표시
+                // [수정] 학생용 단원 표시 (ID 확인)
                 const unitEl = document.getElementById('student-question-unit');
                 if(unitEl) unitEl.innerText = q.unit || "기타";
                 
@@ -662,7 +687,7 @@
             },
             finishQuiz: function() {
                 clearInterval(this.state.timer);
-                this.state.isQuizActive = false; // 퀴즈 종료 플래그
+                this.state.isQuizActive = false;
                 
                 let correct = 0; let details = [];
                 this.state.questions.forEach(q => {
