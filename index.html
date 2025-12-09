@@ -62,6 +62,9 @@
         /* 로고 버튼 스타일 */
         .logo-btn { cursor: pointer; transition: opacity 0.2s; }
         .logo-btn:hover { opacity: 0.8; }
+        
+        /* 이미지 미리보기 */
+        .q-image { max-width: 100%; max-height: 200px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e5e7eb; display: block; margin-left: auto; margin-right: auto; }
     </style>
 </head>
 <body class="text-stone-800 min-h-screen flex flex-col">
@@ -134,13 +137,17 @@
 
             <div class="bg-white p-6 md:p-10 rounded-lg min-h-[400px] flex flex-col relative shadow-md">
                 <div class="mb-4">
-                    <!-- [수정] 단원명 표시 영역 (학생용) -->
                     <span id="student-question-unit" class="inline-block bg-stone-100 text-stone-500 text-xs font-bold px-3 py-1 rounded-md mb-2 border border-stone-200"></span>
                     <div class="flex justify-between items-center">
                         <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">유형</span>
                     </div>
                 </div>
                 
+                <!-- [수정] 이미지 표시 영역 -->
+                <div id="question-image-area" class="mb-4 hidden">
+                    <img id="question-image" src="" alt="문제 이미지" class="q-image">
+                </div>
+
                 <h3 id="question-text" class="text-xl md:text-2xl font-bold mt-2 mb-8 text-stone-900 leading-relaxed serif break-keep">
                     <!-- 문제 내용 -->
                 </h3>
@@ -302,6 +309,16 @@
                                 </select>
                             </div>
                             <div><label class="block text-sm font-bold mb-1">유형</label><select id="new-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('new')"><option value="choice">객관식</option><option value="word">단답형</option><option value="order">순서 맞추기</option><option value="ox">O/X 퀴즈</option></select></div>
+                            
+                            <!-- [추가] 이미지 업로드 -->
+                            <div>
+                                <label class="block text-sm font-bold mb-1">이미지 (선택)</label>
+                                <input type="file" id="new-q-image" accept="image/*" class="w-full text-xs p-2 border rounded bg-white" onchange="app.handleImageUpload(this)">
+                                <p class="text-xs text-gray-500 mt-1">* 고화질 이미지는 자동으로 용량이 최적화됩니다.</p>
+                                <img id="new-q-image-preview" class="hidden mt-2 h-20 rounded border border-gray-300">
+                                <input type="hidden" id="new-q-image-base64">
+                            </div>
+
                             <div><label class="block text-sm font-bold mb-1">문제</label><textarea id="new-q-text" class="w-full p-2 border rounded h-20"></textarea></div>
                             <div id="option-container-new"><label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label><input type="text" id="new-q-options" class="w-full p-2 border rounded" placeholder="예: A, B, C, D"></div>
                             <div><label class="block text-sm font-bold mb-1">정답</label><input type="text" id="new-q-answer" class="w-full p-2 border rounded"></div>
@@ -384,7 +401,7 @@
         const firebaseConfig = { apiKey: "AIzaSyAOlPQ5PFmL0zxmGrGcuEBnqBXisph7kPU", authDomain: "history-quiz-yongsin.firebaseapp.com", projectId: "history-quiz-yongsin", storageBucket: "history-quiz-yongsin.firebasestorage.app", messagingSenderId: "177587430482", appId: "1:177587430482:web:d79cc145c11e335cc3ab8b", measurementId: "G-LHN97D7R2R" };
         let db; try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch(e) { alert("Firebase 오류"); }
 
-        /* 초기 문제 리스트는 비워둡니다 (선생님 요청대로 기존 80개 삭제) */
+        /* [수정] 기본 문제를 모두 삭제하고 비워둠 */
         const defaultQuestions = []; 
 
         const app = {
@@ -396,13 +413,11 @@
                 this.loadQuestionsFromFirebase();
             },
             
-            // 메인 이동 및 이탈 방지
             goToMain: function() {
                 if(this.state.isQuizActive) {
                     if(confirm("정말 문제 응시를 포기하고 메인 화면으로 이동하겠습니까? 이동 시 5분 간 재응시 불가합니다.")) {
-                        // 오답 처리
                         this.state.isTimeOut = true; 
-                        this.saveToFirebase(); // 포기 기록 저장 (5분 룰 적용됨)
+                        this.saveToFirebase(); 
                         this.showView('view-login');
                         this.state.isQuizActive = false;
                         clearInterval(this.state.timer);
@@ -419,24 +434,18 @@
             loadQuestionsFromFirebase: function() {
                 if(!db) return;
                 this.showLoading(true);
-                // 1. 서버에서 모든 문제 가져오기
                 db.collection("quiz_questions").get().then((querySnapshot) => {
                     const loadedData = [];
                     querySnapshot.forEach((doc) => {
-                        // 문자열 ID를 숫자로 변환하여 저장
                         let data = doc.data();
                         data.id = parseInt(doc.id); 
                         loadedData.push(data);
                     });
-                    
-                    // ID 순 정렬
                     loadedData.sort((a, b) => a.id - b.id);
                     this.state.allQuestions = loadedData;
                     console.log("문제 로드 완료:", loadedData.length);
                     this.showLoading(false);
-                    // UI 갱신 (만약 탭이 열려있다면)
                     if(this.state.isTeacherMode) this.renderBank();
-
                 }).catch((error) => {
                     console.error("문제 로드 실패:", error);
                     this.showLoading(false);
@@ -451,14 +460,10 @@
                 const name = document.getElementById('input-name').value.trim();
                 if(!cls || !num || !name) { alert("정보를 모두 입력하세요."); return; }
                 
-                // [수정: 철저한 5분 중복 체크]
                 this.showLoading(true);
                 
                 try {
-                    // 서버가 아닌 클라이언트 시간 기준으로 5분 전 계산 (간단하지만 서버 시간 필드 활용 시 더 정확)
-                    // 여기서는 직관적으로 최근 기록을 모두 가져와서 JS로 시간 비교
                     const logsRef = db.collection("quiz_results");
-                    // 쿼리 복잡도 줄이기 위해 학생 정보로만 필터링 후 메모리에서 시간 체크
                     const snapshot = await logsRef
                         .where("class", "==", cls)
                         .where("number", "==", num)
@@ -469,7 +474,7 @@
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         if (data.timestamp) {
-                            const date = data.timestamp.toDate(); // Firestore Timestamp -> JS Date
+                            const date = data.timestamp.toDate();
                             if (!recentSubmission || date > recentSubmission) {
                                 recentSubmission = date;
                             }
@@ -489,8 +494,7 @@
                         }
                     }
                 } catch(e) {
-                    console.error("중복 체크 중 오류:", e);
-                    // 오류 발생 시 일단 진행 (학생 피해 방지)
+                    console.error("중복 체크 오류 (무시하고 진행):", e);
                 }
                 
                 this.showLoading(false);
@@ -502,8 +506,7 @@
                      return;
                 }
 
-                // [추가] 단원별 안배 로직
-                // 1. 단원별로 분류
+                // 단원별 안배 로직
                 const unitGroups = {};
                 this.state.allQuestions.forEach(q => {
                     const u = q.unit || "기타";
@@ -511,7 +514,6 @@
                     unitGroups[u].push(q);
                 });
 
-                // 2. 단원 목록 (5개 가정)
                 const targetUnits = [
                     "I. 문명의 발생과 고대 세계의 형성",
                     "II. 세계 종교의 확산과 지역 문화의 형성",
@@ -523,7 +525,6 @@
                 const selectedQuestions = [];
                 const usedIds = new Set();
 
-                // 3. 각 주요 단원에서 1개씩 뽑기 시도
                 targetUnits.forEach(u => {
                     if(unitGroups[u] && unitGroups[u].length > 0) {
                         const randIdx = Math.floor(Math.random() * unitGroups[u].length);
@@ -533,7 +534,6 @@
                     }
                 });
 
-                // 4. 부족한 갯수(5개 미만인 경우) 채우기 (나머지 전체에서 랜덤)
                 if (selectedQuestions.length < 5) {
                     const remainingPool = this.state.allQuestions.filter(q => !usedIds.has(q.id));
                     const shuffledRemaining = this.shuffleArray(remainingPool);
@@ -543,9 +543,7 @@
                     }
                 }
                 
-                // 5. 최종 5문제 셔플 (순서 섞기)
                 this.state.questions = this.shuffleArray(selectedQuestions);
-                
                 this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; this.state.isTimeOut = false;
                 this.state.isQuizActive = true; 
                 this.showView('view-quiz'); this.renderQuestion(); this.startTimer();
@@ -577,10 +575,19 @@
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
                 document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'단답','word':'단답','order':'순서','ox':'O/X'}[q.type] || '문제';
                 
-                // [수정] 학생용 단원 표시 (ID 확인)
                 const unitEl = document.getElementById('student-question-unit');
                 if(unitEl) unitEl.innerText = q.unit || "기타";
                 
+                // [추가] 이미지 표시
+                const imgArea = document.getElementById('question-image-area');
+                const imgTag = document.getElementById('question-image');
+                if (q.image) {
+                    imgTag.src = q.image;
+                    imgArea.classList.remove('hidden');
+                } else {
+                    imgArea.classList.add('hidden');
+                }
+
                 document.getElementById('question-text').innerText = q.question;
                 const area = document.getElementById('answer-area'); area.innerHTML = ''; 
                 this.tempAnswer = this.state.answers[q.id] || null; 
@@ -588,7 +595,6 @@
                 document.getElementById('btn-prev').classList.toggle('hidden', this.state.currentIndex === 0);
                 document.getElementById('btn-next').className = this.state.currentIndex === 0 ? "w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md" : "w-2/3 bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md";
 
-                // ... (이전 코드의 렌더링 로직 유지: choice, ox, order, word)
                 if(q.type === 'choice') {
                     const grid = document.createElement('div'); grid.className="grid grid-cols-1 gap-3";
                     q.options.forEach((opt,i) => {
@@ -798,24 +804,13 @@
             
             // --- 문제 관리 (미리보기, 수정, 추가) ---
             renderBank: function() {
-                // [추가] 필터링 및 정렬 적용
                 let filtered = [...this.state.allQuestions];
-                
-                // 1. 단원 필터
                 const unitFilter = document.getElementById('bank-filter-unit').value;
-                if (unitFilter !== 'all') {
-                    filtered = filtered.filter(q => (q.unit || "").startsWith(unitFilter));
-                }
-
-                // 2. 정렬
+                if (unitFilter !== 'all') filtered = filtered.filter(q => (q.unit || "").startsWith(unitFilter));
                 const sortType = document.getElementById('bank-sort').value;
-                if (sortType === 'id') {
-                    filtered.sort((a, b) => a.id - b.id);
-                } else if (sortType === 'unit') {
-                    filtered.sort((a, b) => (a.unit || "").localeCompare(b.unit || ""));
-                } else if (sortType === 'type') {
-                    filtered.sort((a, b) => a.type.localeCompare(b.type));
-                }
+                if (sortType === 'id') filtered.sort((a, b) => a.id - b.id);
+                else if (sortType === 'unit') filtered.sort((a, b) => (a.unit || "").localeCompare(b.unit || ""));
+                else if (sortType === 'type') filtered.sort((a, b) => a.type.localeCompare(b.type));
 
                 document.getElementById('total-q-count').innerText = `(${filtered.length}문항)`;
                 document.getElementById('bank-body').innerHTML = filtered.map(q => 
@@ -830,34 +825,36 @@
                 ).join('');
             },
             
-            // 미리보기 기능
+            // 미리보기 기능 (버튼 활성화)
             previewQuestion: function(id) {
                 const q = this.state.allQuestions.find(x => x.id === id);
                 if(!q) return;
-                
-                // 가짜 렌더링을 위한 임시 상태 설정
                 const tempContainer = document.getElementById('preview-content');
                 tempContainer.innerHTML = `
                     <div class="mb-2"><span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded">${{'choice':'객관식','word':'단답형','order':'순서 맞추기','ox':'O/X'}[q.type]}</span></div>
+                    ${q.image ? `<img src="${q.image}" class="q-image">` : ''}
                     <h3 class="text-xl font-bold mb-4">${q.question}</h3>
                     <div id="preview-answer-area"></div>
                 `;
                 
-                // 실제 렌더링 로직 재사용 (약간 변형)
                 const area = document.getElementById('preview-answer-area');
                 if(q.type === 'choice') {
                     const grid = document.createElement('div'); grid.className="grid grid-cols-1 gap-2";
                     q.options.forEach((opt,i) => {
                         const btn = document.createElement('div');
-                        btn.className = "w-full text-left p-3 rounded border border-stone-200 bg-white flex items-center";
+                        btn.className = "w-full text-left p-3 rounded border border-stone-200 bg-white flex items-center cursor-pointer hover:bg-stone-100";
                         btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-stone-200 inline-flex items-center justify-center text-xs font-bold mr-3">${i+1}</span> ${opt}`;
+                        btn.onclick = function() {
+                           Array.from(grid.children).forEach(c => c.className = "w-full text-left p-3 rounded border border-stone-200 bg-white flex items-center cursor-pointer hover:bg-stone-100");
+                           this.className = "w-full text-left p-3 rounded border-2 border-amber-600 bg-amber-600 text-white font-bold shadow-sm flex items-center cursor-pointer";
+                        }
                         grid.appendChild(btn);
                     });
                     area.appendChild(grid);
                 } else if(q.type === 'ox') {
-                    area.innerHTML = `<div class="flex gap-4 h-20"><div class="flex-1 bg-blue-50 text-blue-600 flex items-center justify-center text-2xl font-bold rounded border-2 border-blue-200">O</div><div class="flex-1 bg-red-50 text-red-600 flex items-center justify-center text-2xl font-bold rounded border-2 border-red-200">X</div></div>`;
+                    area.innerHTML = `<div class="flex gap-4 h-20"><button class="flex-1 ox-btn btn-o" onclick="this.classList.toggle('selected')">O</button><button class="flex-1 ox-btn btn-x" onclick="this.classList.toggle('selected')">X</button></div>`;
                 } else if(q.type === 'order') {
-                    area.innerHTML = `<div class="flex flex-wrap gap-2">${q.options.map(o=>`<span class="px-2 py-1 bg-white border rounded text-sm">${o}</span>`).join('')}</div>`;
+                    area.innerHTML = `<div class="flex flex-wrap gap-2">${q.options.map(o=>`<button class="px-2 py-1 bg-white border rounded text-sm hover:bg-amber-100" onclick="this.classList.toggle('bg-amber-600');this.classList.toggle('text-white')">${o}</button>`).join('')}</div>`;
                 } else {
                     area.innerHTML = `<input type="text" class="w-full p-3 border-b-2 border-stone-300 text-center" placeholder="정답 입력">`;
                 }
@@ -891,7 +888,12 @@
                 const optText = document.getElementById('edit-q-options').value;
                 let options = null;
                 if (type === 'choice' || type === 'order') options = optText.split(',').map(s => s.trim());
-                const updatedQ = { id, unit, type, question: text, options, answer, explanation: exp };
+                
+                // 기존 이미지 유지 (수정 기능엔 이미지 변경 미포함)
+                const originalQ = this.state.allQuestions.find(q => q.id === id);
+                const image = originalQ ? originalQ.image : null;
+
+                const updatedQ = { id, unit, type, question: text, options, answer, explanation: exp, image };
                 
                 db.collection("quiz_questions").doc(String(id)).set(updatedQ).then(() => {
                     this.showLoading(false);
@@ -915,12 +917,51 @@
                 document.getElementById('next-q-id-display').innerText = `현재 ${nextId}번 문제 생성 중`;
             },
             
+            // [추가] 이미지 처리 함수 (압축)
+            handleImageUpload: function(input) {
+                if (input.files && input.files[0]) {
+                    const file = input.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.src = e.target.result;
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            const MAX_WIDTH = 500; // 최대 너비 500px로 제한 (용량 축소)
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                            canvas.width = width;
+                            canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // 압축된 Base64 문자열
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.5); 
+                            document.getElementById('new-q-image-base64').value = dataUrl;
+                            
+                            // 미리보기 표시
+                            const preview = document.getElementById('new-q-image-preview');
+                            preview.src = dataUrl;
+                            preview.classList.remove('hidden');
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            },
+
             addCustomQuestion: function() {
                 const unit = document.getElementById('new-q-unit').value;
                 const t = document.getElementById('new-q-type').value;
                 const q = document.getElementById('new-q-text').value.trim();
                 const a = document.getElementById('new-q-answer').value.trim();
                 const e = document.getElementById('new-q-exp').value.trim();
+                const imageBase64 = document.getElementById('new-q-image-base64').value; // 이미지 데이터
+
                 let o = [];
                 if(!q || !a) { alert("필수 입력"); return; }
                 if(t==='choice'||t==='order') {
@@ -932,15 +973,29 @@
                 this.showLoading(true);
                 const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0);
                 const newId = maxId + 1;
-                const newQ = { id: newId, unit: unit, type: t, question: q, options: o.length ? o : null, answer: a, explanation: e || "해설 없음" };
+                const newQ = { 
+                    id: newId, 
+                    unit: unit, 
+                    type: t, 
+                    question: q, 
+                    options: o.length ? o : null, 
+                    answer: a, 
+                    explanation: e || "해설 없음",
+                    image: imageBase64 || null // 이미지 저장
+                };
                 
                 db.collection("quiz_questions").doc(String(newId)).set(newQ).then(() => {
                     this.showLoading(false);
                     alert("추가되었습니다. (번호: " + newId + ")");
+                    // 초기화
                     document.getElementById('new-q-text').value = '';
                     document.getElementById('new-q-options').value = '';
                     document.getElementById('new-q-answer').value = '';
                     document.getElementById('new-q-exp').value = '';
+                    document.getElementById('new-q-image').value = '';
+                    document.getElementById('new-q-image-preview').classList.add('hidden');
+                    document.getElementById('new-q-image-base64').value = '';
+
                     this.loadQuestionsFromFirebase();
                     this.updateNextQuestionNumber(); 
                 }).catch(err => {
@@ -970,7 +1025,6 @@
             
             // --- 엑셀 업로드 기능 ---
             downloadTemplate: function() {
-                // 헤더: 단원, 유형, 문제, 보기, 정답, 해설
                 const ws_data = [
                     ["단원", "유형", "문제", "보기(콤마로 구분)", "정답", "해설"],
                     ["I. 문명의 발생...", "choice", "다음 중...", "보기1, 보기2, 보기3", "보기1", "해설입니다."]
@@ -996,32 +1050,29 @@
                         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                         const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
                         
-                        // 헤더 제외하고 데이터만 추출 (2번째 줄부터)
                         let batch = db.batch();
                         let count = 0;
-                        // 현재 최대 ID 확인
                         let currentId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0);
 
                         for(let i=1; i<jsonData.length; i++) {
                             const row = jsonData[i];
-                            if(!row[2] || !row[4]) continue; // 문제나 정답 없으면 스킵
+                            if(!row[2] || !row[4]) continue; 
 
                             currentId++;
                             const newQ = {
                                 id: currentId,
                                 unit: row[0] || "기타",
-                                type: row[1] || "word", // 기본값 단답형
+                                type: row[1] || "word",
                                 question: row[2],
                                 options: row[3] ? row[3].split(',').map(s=>s.trim()) : null,
                                 answer: row[4],
-                                explanation: row[5] || "해설 없음"
+                                explanation: row[5] || "해설 없음",
+                                image: null // 엑셀로는 이미지 업로드 불가 (추후 개별 수정)
                             };
                             
                             const docRef = db.collection("quiz_questions").doc(String(currentId));
                             batch.set(docRef, newQ);
                             count++;
-                            
-                            // 500개 제한이 있으므로 적당히 끊어서 커밋해야 하지만 여기선 간단히
                         }
 
                         batch.commit().then(() => {
