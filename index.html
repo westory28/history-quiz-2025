@@ -38,17 +38,14 @@
 
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
-        /* 테이블 스타일 강화 */
         .admin-table th, .admin-table td { border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
         .admin-table th:not(:last-child), .admin-table td:not(:last-child) { border-right: 2px solid #d6d3d1; }
         .col-answer { background-color: #fffbeb; color: #b45309; font-weight: bold; }
 
-        /* 순서 맞추기 버튼 */
         .seq-btn { padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #d1d5db; transition: all 0.2s; cursor: pointer; margin: 4px; }
         .seq-btn-default { background-color: #ffffff !important; color: #1f2937 !important; }
         .seq-btn-selected { background-color: #d97706 !important; color: #ffffff !important; border-color: #b45309 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        /* O/X 버튼 */
         .ox-btn { height: 80px; font-size: 2.5rem; font-weight: 900; border-radius: 12px; transition: all 0.2s; border: 2px solid transparent; width: 100%; }
         .ox-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-o { background-color: #e0f2fe; color: #0284c7; border-color: #0284c7; }
@@ -56,13 +53,15 @@
         .btn-x { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; }
         .btn-x.selected { background-color: #dc2626; color: white; }
 
-        /* 로딩 오버레이 */
         #loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        
+        /* 로고 버튼 스타일 (커서 포인터) */
+        .logo-btn { cursor: pointer; transition: opacity 0.2s; }
+        .logo-btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body class="text-stone-800 min-h-screen flex flex-col">
 
-    <!-- 로딩 오버레이 -->
     <div id="loading-overlay">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-amber-600 border-solid mb-4"></div>
         <p class="text-xl font-bold text-stone-700" id="loading-text">데이터 처리 중...</p>
@@ -71,7 +70,8 @@
     <!-- 상단 헤더 -->
     <header class="bg-stone-900 text-white py-4 shadow-lg sticky top-0 z-40">
         <div class="container mx-auto px-4 flex justify-between items-center relative">
-            <h1 class="text-lg md:text-xl font-bold tracking-tight truncate pr-2">
+            <!-- [수정] 로고 클릭 이벤트 추가 -->
+            <h1 class="text-lg md:text-xl font-bold tracking-tight truncate pr-2 logo-btn" onclick="app.goToMain()">
                 <span class="mr-2">🧑‍🏫</span> 용신중학교 역사교사 방재석
             </h1>
             <button id="btn-teacher-mode" class="teacher-btn">
@@ -129,12 +129,11 @@
             </div>
 
             <div class="bg-white p-6 md:p-10 rounded-lg min-h-[400px] flex flex-col relative shadow-md">
-                <div class="mb-4">
-                    <!-- [추가] 단원명 표시 영역 (학생용) -->
-                    <span id="student-question-unit" class="inline-block bg-stone-100 text-stone-500 text-xs font-bold px-2 py-1 rounded mb-1"></span>
-                    <div class="flex justify-between items-center">
-                        <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">유형</span>
-                    </div>
+                <div class="flex justify-between items-start mb-2">
+                    <span id="question-unit" class="text-xs font-bold text-stone-400 bg-stone-100 px-2 py-1 rounded">단원 정보</span>
+                    <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">
+                        유형
+                    </span>
                 </div>
                 
                 <h3 id="question-text" class="text-xl md:text-2xl font-bold mt-2 mb-8 text-stone-900 leading-relaxed serif break-keep">
@@ -213,7 +212,6 @@
                     <h3 class="font-bold text-lg flex items-center">제출 현황 <span id="log-count" class="text-sm font-normal text-stone-500 ml-2">(로딩중...)</span></h3>
                     
                     <div class="flex gap-2 items-center">
-                        <!-- [추가] 반별 필터 -->
                         <select id="filter-class" onchange="app.renderLogs()" class="p-2 border rounded text-sm bg-white">
                             <option value="all">전체 반 보기</option>
                             <option value="1">1반</option><option value="2">2반</option><option value="3">3반</option><option value="4">4반</option>
@@ -242,7 +240,6 @@
                         <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
                     </div>
                     <div class="flex gap-2 flex-wrap">
-                        <!-- [추가] 문제 은행 필터 -->
                         <select id="bank-sort" onchange="app.renderBank()" class="p-2 border rounded text-xs">
                             <option value="id">번호순</option>
                             <option value="unit">단원순</option>
@@ -257,7 +254,7 @@
                             <option value="V.">V. 세계대전</option>
                         </select>
                         <button onclick="app.resetServerQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
-                            <i class="fas fa-trash-alt mr-1"></i> 초기화
+                            <i class="fas fa-trash-alt mr-1"></i> 문제 전체 초기화 (주의)
                         </button>
                     </div>
                 </div>
@@ -386,12 +383,28 @@
         const defaultQuestions = []; 
 
         const app = {
-            state: { student:{}, questions:[], allQuestions:[], currentIndex:0, answers:{}, score:0, isTeacherMode:false, timer:null, timeLeft:60, isTimeOut:false, customBank:[], logs:[] },
+            state: { student:{}, questions:[], allQuestions:[], currentIndex:0, answers:{}, score:0, isTeacherMode:false, timer:null, timeLeft:60, isTimeOut:false, customBank:[], logs:[], isQuizActive: false },
             
             init: function() {
                 const btnTeacher = document.getElementById('btn-teacher-mode');
                 if(btnTeacher) btnTeacher.onclick = () => this.toggleTeacherMode();
                 this.loadQuestionsFromFirebase();
+            },
+            
+            // [추가] 메인 이동 및 이탈 방지
+            goToMain: function() {
+                if(this.state.isQuizActive) {
+                    if(confirm("정말 문제 응시를 포기하고 메인 화면으로 이동하겠습니까? 이동 시 5분 간 재응시 불가합니다.")) {
+                        // 오답 처리 및 강제 종료
+                        this.state.isTimeOut = true; // 강제 종료 플래그
+                        this.saveToFirebase(); // 현재 상태로 저장 (0점 처리 등은 finishQuiz에서 로직에 따라 다름, 여기선 기록 남기기 위함)
+                        this.showView('view-login');
+                        this.state.isQuizActive = false;
+                        clearInterval(this.state.timer);
+                    }
+                } else {
+                    this.showView('view-login');
+                }
             },
 
             showLoading: function(show) {
@@ -509,6 +522,7 @@
                 this.state.questions = this.shuffleArray(selectedQuestions);
                 
                 this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; this.state.isTimeOut = false;
+                this.state.isQuizActive = true; // 퀴즈 시작 플래그
                 this.showView('view-quiz'); this.renderQuestion(); this.startTimer();
             },
             
@@ -648,6 +662,8 @@
             },
             finishQuiz: function() {
                 clearInterval(this.state.timer);
+                this.state.isQuizActive = false; // 퀴즈 종료 플래그
+                
                 let correct = 0; let details = [];
                 this.state.questions.forEach(q => {
                     const u = (this.state.answers[q.id]||"").toString().replace(/\s+/g,'').trim();
@@ -701,47 +717,6 @@
             },
             
             // --- 로그 ---
-            loadServerLogs: function() {
-                if(!db) return;
-                const tbody = document.getElementById('teacher-log-body');
-                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">로딩 중...</td></tr>';
-                db.collection("quiz_results").orderBy("timestamp", "desc").limit(50).get().then((querySnapshot) => {
-                    let html = ''; let count = 0; this.state.logs = [];
-                    querySnapshot.forEach((doc) => {
-                        const d = doc.data(); count++; this.state.logs.push(d);
-                        html += `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-stone-500 text-xs">${d.timeString}</td><td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td><td class="p-3 font-bold text-amber-600">${d.score}</td><td class="p-3 text-xs">${d.status}</td><td class="p-3 text-center"><button onclick="app.deleteLog('${doc.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button></td></tr>`;
-                    });
-                    tbody.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center">기록 없음</td></tr>';
-                    document.getElementById('log-count').innerText = `(${count}건)`;
-                });
-            },
-            
-            // [추가] 로그 렌더링 (필터링 적용)
-            renderLogs: function() {
-                const clsFilter = document.getElementById('filter-class').value;
-                const tbody = document.getElementById('teacher-log-body');
-                
-                let filtered = this.state.logs;
-                if (clsFilter !== 'all') {
-                    filtered = filtered.filter(l => l.class === clsFilter);
-                }
-
-                if (filtered.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">기록 없음</td></tr>';
-                } else {
-                    let html = '';
-                    filtered.forEach((d) => {
-                        // DB ID는 logs 배열 생성 시 포함되지 않았으므로 다시 렌더링 시 삭제 기능에 문제가 생길 수 있음.
-                        // 하지만 loadServerLogs에서 이미 DOM을 생성하므로 여기서는 간단히 필터만.
-                        // 정확히 하려면 state.logs에 id도 포함해야 함.
-                        // 수정: loadServerLogs에서 state.logs 저장 시 doc.id도 포함하도록 수정함.
-                        html += `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-stone-500 text-xs">${d.timeString}</td><td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td><td class="p-3 font-bold text-amber-600">${d.score}</td><td class="p-3 text-xs">${d.status}</td><td class="p-3 text-center"><button class="text-red-500"><i class="fas fa-history"></i></button></td></tr>`;
-                    });
-                    tbody.innerHTML = html;
-                }
-            },
-            
-            // loadServerLogs 수정 (데이터 저장 구조 변경)
             loadServerLogs: function() {
                 if(!db) return;
                 const tbody = document.getElementById('teacher-log-body');
