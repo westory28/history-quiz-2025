@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Firebase SDK (8.10.1) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -36,32 +36,26 @@
 
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
-        /* 테이블 스타일 */
         .admin-table th, .admin-table td { border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
         .admin-table th:not(:last-child), .admin-table td:not(:last-child) { border-right: 2px solid #d6d3d1; }
         .col-answer { background-color: #fffbeb; color: #b45309; font-weight: bold; }
+        
+        /* 순서 맞추기 버튼 */
+        .seq-btn { padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #d1d5db; transition: all 0.2s; cursor: pointer; margin: 4px; }
+        .seq-btn-default { background-color: #ffffff !important; color: #1f2937 !important; }
+        .seq-btn-selected { background-color: #d97706 !important; color: #ffffff !important; border-color: #b45309 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        /* [수정] 순서 맞추기 버튼 가시성 확보 */
-        .seq-btn {
-            transition: all 0.2s;
-            border: 1px solid #d6d3d1;
-            font-weight: 500;
-        }
-        .seq-btn-default {
-            background-color: white !important;
-            color: #1c1917 !important; /* Stone 900 */
-        }
-        .seq-btn-selected {
-            background-color: #d97706 !important; /* Amber 600 */
-            color: white !important;
-            border-color: #b45309 !important;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
+        /* O/X 버튼 스타일 */
+        .ox-btn { height: 100px; font-size: 3rem; font-weight: 900; border-radius: 12px; transition: all 0.2s; border: 2px solid transparent; }
+        .ox-btn:hover { transform: translateY(-2px); shadow: lg; }
+        .btn-o { background-color: #e0f2fe; color: #0284c7; border-color: #0284c7; }
+        .btn-o.selected { background-color: #0284c7; color: white; }
+        .btn-x { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; }
+        .btn-x.selected { background-color: #dc2626; color: white; }
     </style>
 </head>
 <body class="text-stone-800 min-h-screen flex flex-col">
 
-    <!-- 상단 헤더 -->
     <header class="bg-stone-900 text-white py-4 shadow-lg sticky top-0 z-40">
         <div class="container mx-auto px-4 flex justify-between items-center relative">
             <h1 class="text-lg md:text-xl font-bold tracking-tight truncate pr-2">
@@ -75,14 +69,13 @@
 
     <main class="flex-grow container mx-auto px-4 py-6">
         
-        <!-- 1. 로그인 화면 -->
+        <!-- 1. 로그인 -->
         <section id="view-login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg fade-in mt-8 border-t-4 border-amber-500">
             <div class="text-center mb-8">
                 <span class="bg-amber-100 text-amber-900 text-sm font-bold px-3 py-1 rounded-full">용신중학교 2학년 2학기 역사1</span>
                 <h2 class="text-2xl font-bold serif text-stone-900 mt-4">당신의 역사 실력은?</h2>
                 <p class="text-red-500 font-bold text-sm mt-2"><i class="fas fa-stopwatch mr-1"></i> 제한시간 60초 (5문제)</p>
             </div>
-            
             <div class="space-y-4">
                 <div>
                     <label class="text-xs font-bold text-stone-500 block mb-1">학번 정보</label>
@@ -102,14 +95,13 @@
                     <label class="text-xs font-bold text-stone-500 block mb-1">이름</label>
                     <input type="text" id="input-name" placeholder="이름 입력" class="w-full p-3 border border-stone-300 rounded focus:border-amber-500 outline-none">
                 </div>
-                
                 <button onclick="app.startQuiz()" class="w-full bg-stone-900 text-white font-bold py-4 rounded-lg hover:bg-stone-700 transition shadow-lg mt-4 transform active:scale-95">
                     도전 시작 <i class="fas fa-play ml-2"></i>
                 </button>
             </div>
         </section>
 
-        <!-- 2. 퀴즈 화면 -->
+        <!-- 2. 퀴즈 -->
         <section id="view-quiz" class="hidden max-w-2xl mx-auto fade-in">
             <div class="bg-white rounded-lg shadow-sm mb-6 sticky top-20 z-30 overflow-hidden border border-stone-200">
                 <div class="flex justify-between items-center px-4 py-2 bg-stone-50 border-b border-stone-100">
@@ -124,148 +116,73 @@
             <div class="bg-white p-6 md:p-10 rounded-lg min-h-[400px] flex flex-col relative shadow-md">
                 <div class="flex justify-between items-start mb-2">
                     <span id="question-unit" class="text-xs font-bold text-stone-400 bg-stone-100 px-2 py-1 rounded">단원 정보</span>
-                    <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">
-                        유형
-                    </span>
+                    <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">유형</span>
                 </div>
-                
-                <h3 id="question-text" class="text-xl md:text-2xl font-bold mt-2 mb-8 text-stone-900 leading-relaxed serif break-keep">
-                    <!-- 문제 내용 -->
-                </h3>
-
-                <div id="answer-area" class="flex-grow mb-6">
-                    <!-- 정답 입력란 -->
-                </div>
-
+                <h3 id="question-text" class="text-xl md:text-2xl font-bold mt-2 mb-8 text-stone-900 leading-relaxed serif break-keep"></h3>
+                <div id="answer-area" class="flex-grow mb-6"></div>
                 <div class="flex gap-3 mt-auto">
-                    <button id="btn-prev" onclick="app.prevQuestion()" class="hidden w-1/3 bg-stone-200 text-stone-700 font-bold py-4 rounded-lg hover:bg-stone-300 transition shadow-sm">
-                        <i class="fas fa-chevron-left mr-1"></i> 이전
-                    </button>
-                    <button id="btn-next" onclick="app.submitAnswer()" class="w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md">
-                        다음 <i class="fas fa-chevron-right ml-1"></i>
-                    </button>
+                    <button id="btn-prev" onclick="app.prevQuestion()" class="hidden w-1/3 bg-stone-200 text-stone-700 font-bold py-4 rounded-lg hover:bg-stone-300 transition shadow-sm"><i class="fas fa-chevron-left mr-1"></i> 이전</button>
+                    <button id="btn-next" onclick="app.submitAnswer()" class="w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md">다음 <i class="fas fa-chevron-right ml-1"></i></button>
                 </div>
             </div>
         </section>
 
-        <!-- 3. 결과 화면 -->
+        <!-- 3. 결과 -->
         <section id="view-results" class="hidden max-w-lg mx-auto fade-in mt-6">
             <div class="bg-white p-8 rounded-xl shadow-xl text-center border-t-8 border-amber-500">
                 <h2 class="text-3xl font-bold serif mb-2 text-stone-800">평가 종료</h2>
                 <p class="text-stone-500 mb-6"><span id="result-name" class="font-bold text-stone-900"></span> 학생의 최종 기록</p>
-                
                 <div class="relative w-48 h-48 mx-auto mb-4">
                     <canvas id="scoreChart"></canvas>
-                    <div class="absolute inset-0 flex items-center justify-center flex-col">
-                        <span class="text-5xl font-bold text-amber-600 font-mono" id="score-text">0</span>
-                        <span class="text-xs text-stone-400">점</span>
-                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center flex-col"><span class="text-5xl font-bold text-amber-600 font-mono" id="score-text">0</span><span class="text-xs text-stone-400">점</span></div>
                 </div>
-
-                <div id="submission-status" class="bg-stone-50 p-3 rounded text-sm mb-6 border border-stone-200 text-stone-500">
-                    <i class="fas fa-circle-notch fa-spin"></i> 데이터 저장 중...
-                </div>
-
+                <div id="submission-status" class="bg-stone-50 p-3 rounded text-sm mb-6 border border-stone-200 text-stone-500"><i class="fas fa-circle-notch fa-spin"></i> 데이터 저장 중...</div>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="app.toggleReview()" class="bg-white border-2 border-stone-200 text-stone-700 font-bold py-3 rounded hover:bg-stone-50 hover:border-stone-400 transition">
-                        <i class="fas fa-book-open mr-1"></i> 오답노트
-                    </button>
-                    <button onclick="location.reload()" class="bg-stone-900 text-white font-bold py-3 rounded hover:bg-stone-700 transition shadow-lg">
-                        <i class="fas fa-redo mr-1"></i> 다시 도전
-                    </button>
+                    <button onclick="app.toggleReview()" class="bg-white border-2 border-stone-200 text-stone-700 font-bold py-3 rounded hover:bg-stone-50 hover:border-stone-400 transition"><i class="fas fa-book-open mr-1"></i> 오답노트</button>
+                    <button onclick="location.reload()" class="bg-stone-900 text-white font-bold py-3 rounded hover:bg-stone-700 transition shadow-lg"><i class="fas fa-redo mr-1"></i> 다시 도전</button>
                 </div>
             </div>
-
-            <!-- 오답노트 -->
             <div id="review-section" class="hidden mt-6 bg-white p-6 rounded-xl shadow-lg border border-red-200">
                 <h3 class="font-bold text-lg mb-4 text-red-600 border-b pb-2"><i class="fas fa-check-circle"></i> 오답 확인</h3>
                 <div id="review-list" class="space-y-4 text-left"></div>
             </div>
         </section>
 
-        <!-- 4. 교사용 대시보드 -->
+        <!-- 4. 교사용 -->
         <section id="view-teacher" class="hidden max-w-6xl mx-auto bg-white p-6 rounded shadow-xl mt-4 border border-stone-300 relative">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <div>
-                    <h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2>
-                    <p class="text-xs text-stone-500 mt-1">비밀번호: 0423 | <span class="text-green-600 font-bold">Firebase 서버 연동됨</span> (PC/모바일 동기화)</p>
-                </div>
+                <div><h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2><p class="text-xs text-stone-500 mt-1">비밀번호: 0423 | <span class="text-blue-600 font-bold">Firebase 연동됨</span></p></div>
                 <button onclick="app.closeTeacherMode()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 px-4 py-2 rounded text-sm font-bold">나가기</button>
             </div>
-            
             <div class="flex flex-wrap gap-2 mb-6">
                 <button onclick="app.setTeacherTab('log')" id="btn-tab-log" class="px-5 py-2 rounded-full bg-stone-800 text-white text-sm font-bold shadow transition"><i class="fas fa-list mr-1"></i> 실시간 기록</button>
                 <button onclick="app.setTeacherTab('bank')" id="btn-tab-bank" class="px-5 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-bold hover:bg-stone-200 shadow transition"><i class="fas fa-database mr-1"></i> 문제 은행</button>
                 <button onclick="app.setTeacherTab('add')" id="btn-tab-add" class="px-5 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-bold hover:bg-stone-200 shadow transition"><i class="fas fa-plus-circle mr-1"></i> 문제 추가</button>
             </div>
-
-            <!-- 탭 1: 학생 기록 -->
             <div id="tab-log">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-lg">제출 현황 <span id="log-count" class="text-sm font-normal text-stone-500 ml-2">(로딩중...)</span></h3>
-                    <div class="flex gap-2">
-                        <button onclick="app.loadServerLogs()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-bold shadow"><i class="fas fa-sync-alt mr-1"></i> 새로고침</button>
-                        <button onclick="app.downloadExcel()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-bold shadow"><i class="fas fa-file-excel mr-1"></i> 엑셀 다운</button>
-                    </div>
+                    <div class="flex gap-2"><button onclick="app.loadServerLogs()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-bold shadow"><i class="fas fa-sync-alt mr-1"></i> 새로고침</button><button onclick="app.downloadExcel()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-bold shadow"><i class="fas fa-file-excel mr-1"></i> 엑셀 다운</button></div>
                 </div>
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
-                    <table class="w-full text-sm text-left admin-table">
-                        <thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold">
-                            <tr><th class="p-3">시간</th><th class="p-3">정보</th><th class="p-3">점수</th><th class="p-3">상태</th><th class="p-3">삭제</th></tr>
-                        </thead>
-                        <tbody id="teacher-log-body" class="bg-white">
-                            <tr><td colspan="5" class="p-4 text-center text-stone-400">데이터를 불러오는 중...</td></tr>
-                        </tbody>
-                    </table>
+                    <table class="w-full text-sm text-left admin-table"><thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold"><tr><th class="p-3">시간</th><th class="p-3">정보</th><th class="p-3">점수</th><th class="p-3">상태</th><th class="p-3">삭제</th></tr></thead><tbody id="teacher-log-body" class="bg-white"><tr><td colspan="5" class="p-4 text-center text-stone-400">데이터를 불러오는 중...</td></tr></tbody></table>
                 </div>
             </div>
-
-            <!-- 탭 2: 문제 은행 -->
             <div id="tab-bank" class="hidden">
                 <div class="flex justify-between items-center mb-4 bg-stone-50 p-3 rounded border border-stone-200">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
-                        <p class="text-xs text-stone-400 ml-2">* 문제를 클릭하면 수정할 수 있습니다.</p>
-                    </div>
-                    <button onclick="app.resetServerQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
-                        <i class="fas fa-trash-alt mr-1"></i> 서버 문제 전체 초기화 (복구용)
-                    </button>
+                    <div class="flex items-center gap-2"><h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3><p class="text-xs text-stone-400 ml-2">* 클릭하여 수정 가능</p></div>
+                    <button onclick="app.resetServerQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm"><i class="fas fa-trash-alt mr-1"></i> 사용자 추가 문제 초기화</button>
                 </div>
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
-                    <table class="w-full text-sm text-left admin-table table-bordered">
-                        <thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold">
-                            <tr>
-                                <th class="p-3 w-16 text-center">ID</th>
-                                <th class="p-3 w-32">단원</th>
-                                <th class="p-3 w-20 text-center">유형</th>
-                                <th class="p-3">문제 (클릭하여 수정)</th>
-                                <th class="p-3 w-32 col-answer text-center">정답</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bank-body" class="bg-white"></tbody>
-                    </table>
+                    <table class="w-full text-sm text-left admin-table table-bordered"><thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold"><tr><th class="p-3 w-16 text-center">ID</th><th class="p-3 w-32">단원</th><th class="p-3 w-20 text-center">유형</th><th class="p-3">문제 (클릭하여 수정)</th><th class="p-3 w-32 col-answer text-center">정답</th></tr></thead><tbody id="bank-body" class="bg-white"></tbody></table>
                 </div>
             </div>
-
-            <!-- 탭 3: 문제 추가 -->
             <div id="tab-add" class="hidden">
                 <div class="bg-stone-50 p-6 rounded border border-stone-200 max-w-2xl mx-auto">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h3 class="font-bold text-xl">새 문제 만들기</h3>
-                        <span id="next-q-id-display" class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200"></span>
-                    </div>
+                    <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-bold text-xl">새 문제 만들기</h3><span id="next-q-id-display" class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200"></span></div>
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold mb-1">단원 선택</label>
-                            <select id="new-q-unit" class="w-full p-2 border rounded bg-white">
-                                <option value="I. 문명의 발생과 고대 세계의 형성">I. 문명의 발생과 고대 세계의 형성</option>
-                                <option value="II. 세계 종교의 확산과 지역 문화의 형성">II. 세계 종교의 확산과 지역 문화의 형성</option>
-                                <option value="III. 지역 세계의 교류와 변화">III. 지역 세계의 교류와 변화</option>
-                                <option value="IV. 제국주의 침략과 국민 국가 건설 운동">IV. 제국주의 침략과 국민 국가 건설 운동</option>
-                                <option value="V. 세계 대전과 사회 변동">V. 세계 대전과 사회 변동</option>
-                            </select>
-                        </div>
-                        <div><label class="block text-sm font-bold mb-1">유형</label><select id="new-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('new')"><option value="choice">객관식</option><option value="blank">빈칸 채우기</option><option value="word">단답형</option><option value="order">순서 맞추기</option></select></div>
+                        <div><label class="block text-sm font-bold mb-1">단원 선택</label><select id="new-q-unit" class="w-full p-2 border rounded bg-white"><option value="I. 문명의 발생과 고대 세계의 형성">I. 문명의 발생과 고대 세계의 형성</option><option value="II. 세계 종교의 확산과 지역 문화의 형성">II. 세계 종교의 확산과 지역 문화의 형성</option><option value="III. 지역 세계의 교류와 변화">III. 지역 세계의 교류와 변화</option><option value="IV. 제국주의 침략과 국민 국가 건설 운동">IV. 제국주의 침략과 국민 국가 건설 운동</option><option value="V. 세계 대전과 사회 변동">V. 세계 대전과 사회 변동</option></select></div>
+                        <div><label class="block text-sm font-bold mb-1">유형</label><select id="new-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('new')"><option value="choice">객관식</option><option value="word">단답형</option><option value="order">순서 맞추기</option><option value="ox">O/X 퀴즈</option></select></div>
                         <div><label class="block text-sm font-bold mb-1">문제</label><textarea id="new-q-text" class="w-full p-2 border rounded h-20"></textarea></div>
                         <div id="option-container-new"><label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label><input type="text" id="new-q-options" class="w-full p-2 border rounded" placeholder="예: A, B, C, D"></div>
                         <div><label class="block text-sm font-bold mb-1">정답</label><input type="text" id="new-q-answer" class="w-full p-2 border rounded"></div>
@@ -283,154 +200,98 @@
                 <h3 class="font-bold text-xl mb-4 border-b pb-2">문제 수정</h3>
                 <input type="hidden" id="edit-q-id">
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-bold mb-1">단원</label>
-                        <select id="edit-q-unit" class="w-full p-2 border rounded">
-                            <option value="I. 문명의 발생과 고대 세계의 형성">I. 문명의 발생과 고대 세계의 형성</option>
-                            <option value="II. 세계 종교의 확산과 지역 문화의 형성">II. 세계 종교의 확산과 지역 문화의 형성</option>
-                            <option value="III. 지역 세계의 교류와 변화">III. 지역 세계의 교류와 변화</option>
-                            <option value="IV. 제국주의 침략과 국민 국가 건설 운동">IV. 제국주의 침략과 국민 국가 건설 운동</option>
-                            <option value="V. 세계 대전과 사회 변동">V. 세계 대전과 사회 변동</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-1">유형</label>
-                        <select id="edit-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('edit')">
-                            <option value="choice">객관식</option>
-                            <option value="blank">빈칸 채우기</option>
-                            <option value="word">단답형</option>
-                            <option value="order">순서 맞추기</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-1">문제</label>
-                        <textarea id="edit-q-text" class="w-full p-2 border rounded h-20"></textarea>
-                    </div>
-                    <div id="option-container-edit">
-                        <label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label>
-                        <input type="text" id="edit-q-options" class="w-full p-2 border rounded">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-1">정답</label>
-                        <input type="text" id="edit-q-answer" class="w-full p-2 border rounded">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-1">해설</label>
-                        <input type="text" id="edit-q-exp" class="w-full p-2 border rounded">
-                    </div>
-                    <div class="flex gap-2 pt-2">
-                        <button onclick="app.saveEditedQuestion()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700">저장</button>
-                        <button onclick="app.closeEditModal()" class="flex-1 bg-stone-200 text-stone-700 font-bold py-3 rounded hover:bg-stone-300">취소</button>
-                    </div>
+                    <div><label class="block text-sm font-bold mb-1">단원</label><select id="edit-q-unit" class="w-full p-2 border rounded"><option value="I. 문명의 발생과 고대 세계의 형성">I. 문명의 발생과 고대 세계의 형성</option><option value="II. 세계 종교의 확산과 지역 문화의 형성">II. 세계 종교의 확산과 지역 문화의 형성</option><option value="III. 지역 세계의 교류와 변화">III. 지역 세계의 교류와 변화</option><option value="IV. 제국주의 침략과 국민 국가 건설 운동">IV. 제국주의 침략과 국민 국가 건설 운동</option><option value="V. 세계 대전과 사회 변동">V. 세계 대전과 사회 변동</option></select></div>
+                    <div><label class="block text-sm font-bold mb-1">유형</label><select id="edit-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('edit')"><option value="choice">객관식</option><option value="word">단답형</option><option value="order">순서 맞추기</option><option value="ox">O/X 퀴즈</option></select></div>
+                    <div><label class="block text-sm font-bold mb-1">문제</label><textarea id="edit-q-text" class="w-full p-2 border rounded h-20"></textarea></div>
+                    <div id="option-container-edit"><label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label><input type="text" id="edit-q-options" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-bold mb-1">정답</label><input type="text" id="edit-q-answer" class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm font-bold mb-1">해설</label><input type="text" id="edit-q-exp" class="w-full p-2 border rounded"></div>
+                    <div class="flex gap-2 pt-2"><button onclick="app.saveEditedQuestion()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700">저장</button><button onclick="app.closeEditModal()" class="flex-1 bg-stone-200 text-stone-700 font-bold py-3 rounded hover:bg-stone-300">취소</button></div>
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- 저작권 푸터 -->
     <footer class="bg-stone-100 py-6 mt-8 border-t border-stone-200 text-center">
         <p class="text-stone-500 text-xs mb-1">본 웹사이트는 비영리적 교육 목적으로 제작되었습니다. 영리적 이용을 금합니다.</p>
         <p class="text-stone-400 text-xs font-bold font-mono">Copyright © 용신중학교 역사교사 방재석. All rights reserved.</p>
     </footer>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAOlPQ5PFmL0zxmGrGcuEBnqBXisph7kPU",
-            authDomain: "history-quiz-yongsin.firebaseapp.com",
-            projectId: "history-quiz-yongsin",
-            storageBucket: "history-quiz-yongsin.firebasestorage.app",
-            messagingSenderId: "177587430482",
-            appId: "1:177587430482:web:d79cc145c11e335cc3ab8b",
-            measurementId: "G-LHN97D7R2R"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyAOlPQ5PFmL0zxmGrGcuEBnqBXisph7kPU", authDomain: "history-quiz-yongsin.firebaseapp.com", projectId: "history-quiz-yongsin", storageBucket: "history-quiz-yongsin.firebasestorage.app", messagingSenderId: "177587430482", appId: "1:177587430482:web:d79cc145c11e335cc3ab8b", measurementId: "G-LHN97D7R2R" };
+        let db; try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch(e) { alert("DB 설정 오류"); }
 
-        let db;
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.firestore();
-            console.log("Firebase Connected");
-        } catch(e) {
-            console.error("Firebase Init Error:", e);
-            alert("Firebase 설정 중 오류가 발생했습니다.");
-        }
-
-        /* 복구된 전체 80문제 데이터 (51~80번 추가됨) */
+        /* 문제 데이터 (빈칸 -> 단답형 통합, 81~85번 OX 추가) */
         const defaultQuestions = [
-            // 기존 1~50 (유지)
             { id: 1, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "아테네 민주 정치의 전성기 지도자는?", answer: "페리클레스", options: ["페리클레스", "알렉산드로스", "카이사르", "솔론"], explanation: "페리클레스 시대에 직접 민주주의가 완성됨." },
-            { id: 2, unit: "I. 문명의 발생과 고대 세계의 형성", type: "blank", question: "아테네 민주 정치에서 여성, 노예, [ _____ ]은 참정권이 없었다.", answer: "외국인", explanation: "제한적 민주정치였음." },
+            { id: 2, unit: "I. 문명의 발생과 고대 세계의 형성", type: "word", question: "아테네 민주 정치에서 여성, 노예, [ _____ ]은 참정권이 없었다.", answer: "외국인", explanation: "제한적 민주정치였음." },
             { id: 3, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "그리스가 페르시아 전쟁 승리 후 맺은 동맹은?", answer: "델로스 동맹", options: ["펠로폰네소스 동맹", "델로스 동맹", "신성 동맹", "삼국 동맹"], explanation: "아테네가 맹주가 됨." },
             { id: 4, unit: "I. 문명의 발생과 고대 세계의 형성", type: "word", question: "그리스-페르시아 전쟁 승전보의 유래가 된 전투는?", answer: "마라톤", explanation: "마라톤 경기의 기원." },
             { id: 5, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "로마 공화정 초기 귀족들의 최고 의결 기관은?", answer: "원로원", options: ["원로원", "민회", "호민관", "집정관"], explanation: "실권 장악." },
             { id: 6, unit: "I. 문명의 발생과 고대 세계의 형성", type: "word", question: "로마 평민 대표 직책은?", answer: "호민관", explanation: "거부권 행사 가능." },
             { id: 7, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "로마 초대 황제 아우구스투스는 누구?", answer: "옥타비아누스", options: ["카이사르", "옥타비아누스", "안토니우스", "네로"], explanation: "제정 시작." },
-            { id: 8, unit: "I. 문명의 발생과 고대 세계의 형성", type: "blank", question: "로마의 평화 시대를 [ _____ ] 로마나 라고 한다.", answer: "팍스", explanation: "Pax Romana." },
+            { id: 8, unit: "I. 문명의 발생과 고대 세계의 형성", type: "word", question: "로마의 평화 시대를 [ _____ ] 로마나 라고 한다.", answer: "팍스", explanation: "Pax Romana." },
             { id: 9, unit: "I. 문명의 발생과 고대 세계의 형성", type: "choice", question: "로마 제국을 4분할 통치한 황제는?", answer: "디오클레티아누스", options: ["콘스탄티누스", "디오클레티아누스", "테오도시우스", "트라야누스"], explanation: "효율적 통치 목적." },
             { id: 10, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "봉건제에서 주군이 봉신에게 준 것은?", answer: "봉토", options: ["봉토", "노예", "화폐", "성경"], explanation: "토지 매개 계약." },
-            { id: 11, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "blank", question: "장원에 예속된 농민을 [ _____ ]라고 한다.", answer: "농노", explanation: "거주 이전 자유 없음." },
+            { id: 11, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "장원에 예속된 농민을 [ _____ ]라고 한다.", answer: "농노", explanation: "거주 이전 자유 없음." },
             { id: 12, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "교황권이 황제권보다 강해진 사건은? (ㅋㄴㅅ의 굴욕)", answer: "카노사의 굴욕", explanation: "하인리히 4세가 굴복함." },
             { id: 13, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "십자군 전쟁 결과는?", answer: "교황권 쇠퇴", options: ["교황권 강화", "교황권 쇠퇴", "봉건제 강화", "무역 쇠퇴"], explanation: "실패로 인한 권위 추락." },
             { id: 14, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "신앙과 이성의 조화를 추구한 중세 철학은?", answer: "스콜라 철학", options: ["스콜라 철학", "경험주의", "실존주의", "계몽 사상"], explanation: "토마스 아퀴나스." },
-            { id: 15, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "blank", question: "스콜라 철학 집대성: 토마스 [ _____ ]", answer: "아퀴나스", explanation: "신학 대전 저술." },
+            { id: 15, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "스콜라 철학 집대성: 토마스 [ _____ ]", answer: "아퀴나스", explanation: "신학 대전 저술." },
             { id: 16, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "뾰족한 첨탑, 스테인드글라스 건축 양식은?", answer: "고딕 양식", options: ["로마네스크", "고딕 양식", "비잔티움", "바로크"], explanation: "중세 대표 양식." },
             { id: 17, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "유스티니아누스 대제가 편찬한 법전은?", answer: "유스티니아누스 법전", explanation: "로마법 집대성." },
             { id: 18, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "이탈리아 르네상스의 근본 정신은?", answer: "인문주의", options: ["신본주의", "인문주의", "민족주의", "제국주의"], explanation: "인간 중심." },
             { id: 19, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "모나리자를 그린 화가는?", answer: "레오나르도 다빈치", options: ["미켈란젤로", "라파엘로", "레오나르도 다빈치", "보티첼리"], explanation: "르네상스 맨." },
-            { id: 20, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "blank", question: "알프스 이북 르네상스는 [ _____ ] 비판 성격이 강했다.", answer: "교회", explanation: "사회 비판적." },
+            { id: 20, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "알프스 이북 르네상스는 [ _____ ] 비판 성격이 강했다.", answer: "교회", explanation: "사회 비판적." },
             { id: 21, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "활판 인쇄술 발명가는?", answer: "구텐베르크", explanation: "지식 혁명." },
-            { id: 22, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "루터가 비판한 것은?", answer: "면벌부 판매", options: ["성직 매매", "면벌부 판매", "십자군", "마녀 사냥"], explanation: "95개조 반박문." },
+            { id: 22, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "word", question: "루터가 비판한 것은?", answer: "면벌부 판매", explanation: "95개조 반박문." },
             { id: 23, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "예정설을 주장한 사람은?", answer: "칼뱅", options: ["루터", "칼뱅", "헨리 8세", "쯔빙글리"], explanation: "직업 소명설." },
             { id: 24, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "이혼 문제로 종교 개혁한 왕은?", answer: "헨리 8세", options: ["엘리자베스 1세", "헨리 8세", "루이 14세", "찰스 1세"], explanation: "영국 국교회 성립." },
             { id: 25, unit: "III. 지역 세계의 교류와 변화", type: "choice", question: "신항로 개척, 아메리카 발견자는?", answer: "콜럼버스", options: ["바스코 다 가마", "마젤란", "콜럼버스", "디아스"], explanation: "서인도 제도 도착." },
             { id: 26, unit: "III. 지역 세계의 교류와 변화", type: "word", question: "최초 세계 일주 성공 팀은?", answer: "마젤란", explanation: "지구 구형설 입증." },
-            { id: 27, unit: "III. 지역 세계의 교류와 변화", type: "blank", question: "왕권은 신이 주었다는 [ _____ ]설.", answer: "왕권신수", explanation: "절대왕정 사상적 기반." },
+            { id: 27, unit: "III. 지역 세계의 교류와 변화", type: "word", question: "왕권은 신이 주었다는 [ _____ ]설.", answer: "왕권신수", explanation: "절대왕정 사상적 기반." },
             { id: 28, unit: "III. 지역 세계의 교류와 변화", type: "choice", question: "무적함대를 만든 에스파냐 왕은?", answer: "펠리페 2세", options: ["펠리페 2세", "엘리자베스 1세", "루이 14세", "표트르 대제"], explanation: "전성기 구가." },
             { id: 29, unit: "III. 지역 세계의 교류와 변화", type: "choice", question: "태양왕, 베르사유 궁전 주인은?", answer: "루이 14세", options: ["루이 16세", "루이 14세", "나폴레옹", "앙리 4세"], explanation: "짐이 곧 국가다." },
             { id: 30, unit: "III. 지역 세계의 교류와 변화", type: "word", question: "러시아 서유럽화 정책 추진 황제는?", answer: "표트르 대제", explanation: "수염세." },
             { id: 31, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "명예혁명 결과 승인된 문서는?", answer: "권리장전", options: ["대헌장", "권리청원", "권리장전", "독립선언문"], explanation: "입헌군주제 토대." },
-            { id: 32, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "blank", question: "미국 혁명 발단: [ _____ ] 차 사건.", answer: "보스턴", explanation: "대표 없으면 과세 없다." },
+            { id: 32, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "미국 혁명 발단: [ _____ ] 차 사건.", answer: "보스턴", explanation: "대표 없으면 과세 없다." },
             { id: 33, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "order", question: "프랑스 혁명 순서", answer: "삼부회-바스티유-인권선언-공포정치", options: ["바스티유습격", "공포정치", "인권선언", "삼부회소집"], explanation: "전개 과정 암기." },
             { id: 34, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "공포 정치 주도 인물은?", answer: "로베스피에르", options: ["루이 16세", "로베스피에르", "나폴레옹", "당통"], explanation: "공안 위원회." },
             { id: 35, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "가리발디가 이끈 부대는?", answer: "붉은 셔츠대", options: ["붉은 셔츠대", "철혈 부대", "십자군", "의용군"], explanation: "이탈리아 통일 기여." },
             { id: 36, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "비스마르크의 통일 정책은?", answer: "철혈 정책", explanation: "독일 통일." },
             { id: 37, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "산업혁명 발상지는?", answer: "영국", options: ["프랑스", "독일", "미국", "영국"], explanation: "조건이 좋았음." },
-            { id: 38, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "blank", question: "제국주의 정당화 논리: [ _____ ]론.", answer: "사회진화", explanation: "스펜서." },
+            { id: 38, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "제국주의 정당화 논리: [ _____ ]론.", answer: "사회진화", explanation: "스펜서." },
             { id: 39, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "식민지 쟁탈전 가장 치열했던 곳?", answer: "아프리카", options: ["아시아", "아프리카", "아메리카", "유럽"], explanation: "분할됨." },
             { id: 40, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "1차 대전 원인 사건?", answer: "사라예보 사건", options: ["보스턴 차 사건", "사라예보 사건", "피의 일요일", "진주만"], explanation: "오스트리아 황태자 암살." },
             { id: 41, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "영국, 프랑스, 러시아 동맹은?", answer: "삼국 협상", options: ["삼국 동맹", "삼국 협상", "추축국", "연합국"], explanation: "독일 포위." },
             { id: 42, unit: "V. 세계 대전과 사회 변동", type: "word", question: "독일에게 막대한 배상금 물린 조약?", answer: "베르사유 조약", explanation: "2차 대전 씨앗." },
-            { id: 43, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "미국 대공황 극복 정책: [ _____ ] 정책.", answer: "뉴딜", explanation: "루즈벨트." },
+            { id: 43, unit: "V. 세계 대전과 사회 변동", type: "word", question: "미국 대공황 극복 정책: [ _____ ] 정책.", answer: "뉴딜", explanation: "루즈벨트." },
             { id: 44, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "국가 전체 우선 사상은?", answer: "전체주의", options: ["자유주의", "민주주의", "전체주의", "개인주의"], explanation: "파시즘, 나치즘." },
             { id: 45, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "나치의 유대인 학살은?", answer: "홀로코스트", options: ["홀로코스트", "아파르트헤이트", "킬링필드", "인종 청소"], explanation: "제노사이드." },
             { id: 46, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "choice", question: "대표적 고딕 건축물?", answer: "노트르담 대성당", options: ["판테온", "파르테논", "노트르담 대성당", "콜로세움"], explanation: "파리 소재." },
-            { id: 47, unit: "III. 지역 세계의 교류와 변화", type: "blank", question: "루이 14세의 궁전: [ _____ ] 궁전.", answer: "베르사유", explanation: "바로크 양식." },
+            { id: 47, unit: "III. 지역 세계의 교류와 변화", type: "word", question: "루이 14세의 궁전: [ _____ ] 궁전.", answer: "베르사유", explanation: "바로크 양식." },
             { id: 48, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "청교도 혁명 지도자?", answer: "크롬웰", options: ["찰스 1세", "크롬웰", "제임스 2세", "윌리엄 3세"], explanation: "호국경 취임." },
             { id: 49, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "천부인권: 생명, 자유, [  ] 추구.", answer: "행복", explanation: "미국 독립 선언." },
             { id: 50, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "나폴레옹이 전파한 사상?", answer: "자유주의", options: ["왕권신수설", "자유주의", "복고주의", "전체주의"], explanation: "혁명 정신." },
-
-            // [추가 복구된 문제 51~80]
             { id: 51, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "방적기와 방직기 발명으로 발달한 산업은?", answer: "면직물 공업", options: ["면직물 공업", "제철 공업", "석유 화학", "자동차"], explanation: "산업혁명의 시작." },
             { id: 52, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "제임스 와트가 개량한 동력 기관은?", answer: "증기 기관", explanation: "공장제 기계 공업의 핵심." },
-            { id: 53, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "blank", question: "스펀서가 주장한 [ _____ ]론은 제국주의 침략을 옹호했다.", answer: "사회진화", explanation: "약육강식 논리." },
+            { id: 53, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "스펀서가 주장한 [ _____ ]론은 제국주의 침략을 옹호했다.", answer: "사회진화", explanation: "약육강식 논리." },
             { id: 54, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "영국의 종단 정책 거점 도시가 아닌 것은?", answer: "캘커타", options: ["카이로", "케이프타운", "캘커타", "수에즈"], explanation: "캘커타는 3C 정책(횡단) 거점." },
             { id: 55, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "프랑스의 아프리카 식민지 연결 정책은?", answer: "횡단 정책", options: ["종단 정책", "횡단 정책", "3B 정책", "3C 정책"], explanation: "알제리와 마다가스카르 연결." },
             { id: 56, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "영국의 종단 정책과 프랑스의 횡단 정책이 충돌한 사건은?", answer: "파쇼다 사건", explanation: "수단 파쇼다에서 대립." },
             { id: 57, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "독일의 3B 정책에 포함되지 않는 도시는?", answer: "베이징", options: ["베를린", "비잔티움", "바그다드", "베이징"], explanation: "베이징은 중국." },
             { id: 58, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "1차 대전 중 독일이 선언한 해상 작전은?", answer: "무제한 잠수함 작전", options: ["무제한 잠수함 작전", "바다사자 작전", "진주만 공습", "노르망디 상륙"], explanation: "미국 참전의 계기." },
-            { id: 59, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "1차 대전은 전방과 후방의 구분이 없는 [ _____ ]전의 양상을 띠었다.", answer: "총력", explanation: "국가의 모든 역량이 동원됨." },
+            { id: 59, unit: "V. 세계 대전과 사회 변동", type: "word", question: "1차 대전은 전방과 후방의 구분이 없는 [ _____ ]전의 양상을 띠었다.", answer: "총력", explanation: "국가의 모든 역량이 동원됨." },
             { id: 60, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "러시아 혁명을 이끈 볼셰비키 지도자는?", answer: "레닌", options: ["레닌", "스탈린", "차르 니콜라이 2세", "고르바초프"], explanation: "최초의 사회주의 국가 수립." },
             { id: 61, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "윌슨이 제창한 평화 원칙 중 하나는?", answer: "민족 자결 주의", options: ["민족 자결 주의", "제국주의 강화", "군비 증강", "식민지 확대"], explanation: "식민지 민족에게 희망을 줌." },
             { id: 62, unit: "V. 세계 대전과 사회 변동", type: "word", question: "국제 평화 유지를 위해 창설된 최초의 국제기구는?", answer: "국제 연맹", explanation: "미국 불참, 무력 제재 수단 부재의 한계." },
-            { id: 63, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "간디의 비폭력 [ _____ ] 운동.", answer: "불복종", explanation: "영국 상품 불매 등." },
+            { id: 63, unit: "V. 세계 대전과 사회 변동", type: "word", question: "간디의 비폭력 [ _____ ] 운동.", answer: "불복종", explanation: "영국 상품 불매 등." },
             { id: 64, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "중국의 반제국주의 반봉건 운동은?", answer: "5.4 운동", options: ["3.1 운동", "5.4 운동", "신해혁명", "의화단 운동"], explanation: "파리 강화 회의 결과에 반발." },
             { id: 65, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "경제 대공황의 시발점이 된 사건은?", answer: "미국 주식 폭락", options: ["미국 주식 폭락", "독일 배상금 거부", "소련 건국", "석유 파동"], explanation: "검은 목요일." },
             { id: 66, unit: "V. 세계 대전과 사회 변동", type: "word", question: "영국과 프랑스가 대공황 극복을 위해 식민지를 묶은 경제 체제는?", answer: "블록 경제", explanation: "파운드 블록, 금 블록 등." },
             { id: 67, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "이탈리아의 전체주의 정당은?", answer: "파시스트당", options: ["나치스", "파시스트당", "공산당", "사회당"], explanation: "무솔리니가 이끎." },
             { id: 68, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "독일의 전체주의 정당은?", answer: "나치스", options: ["나치스", "파시스트당", "볼셰비키", "민주당"], explanation: "히틀러가 이끎." },
-            { id: 69, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "독일, 이탈리아, 일본이 맺은 군사 동맹: [ _____ ]국.", answer: "추축", explanation: "추축국 vs 연합국." },
+            { id: 69, unit: "V. 세계 대전과 사회 변동", type: "word", question: "독일, 이탈리아, 일본이 맺은 군사 동맹: [ _____ ]국.", answer: "추축", explanation: "추축국 vs 연합국." },
             { id: 70, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "2차 대전의 발발 원인이 된 독일의 침공 지역은?", answer: "폴란드", options: ["프랑스", "폴란드", "소련", "영국"], explanation: "폴란드 침공으로 영/프 선전포고." },
             { id: 71, unit: "V. 세계 대전과 사회 변동", type: "word", question: "일본의 기습 공격으로 태평양 전쟁이 시작된 곳은?", answer: "진주만", explanation: "미국 하와이 진주만." },
             { id: 72, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "연합국이 승기를 잡은 결정적 상륙 작전은?", answer: "노르망디 상륙 작전", options: ["인천 상륙 작전", "노르망디 상륙 작전", "갈리폴리 상륙", "오키나와 상륙"], explanation: "프랑스 해방의 계기." },
@@ -438,48 +299,44 @@
             { id: 74, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "세포이 항쟁이 일어난 나라는?", answer: "인도", options: ["인도", "중국", "이집트", "베트남"], explanation: "영국의 식민 지배에 저항." },
             { id: 75, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "word", question: "청나라와 영국 사이의 무역 불균형으로 일어난 전쟁은?", answer: "아편 전쟁", explanation: "난징 조약 체결." },
             { id: 76, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "choice", question: "일본이 근대화를 위해 단행한 개혁은?", answer: "메이지 유신", options: ["메이지 유신", "양무 운동", "변법 자강 운동", "갑신정변"], explanation: "서양 문물 적극 수용." },
-            { id: 77, unit: "V. 세계 대전과 사회 변동", type: "blank", question: "소련의 경제 개발 계획: [ _ ]개년 계획.", answer: "5", explanation: "스탈린의 중공업 육성." },
+            { id: 77, unit: "V. 세계 대전과 사회 변동", type: "word", question: "소련의 경제 개발 계획: [ _ ]개년 계획.", answer: "5", explanation: "스탈린의 중공업 육성." },
             { id: 78, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "히틀러가 저술한 책 이름은?", answer: "나의 투쟁", options: ["나의 투쟁", "자본론", "국부론", "사회계약론"], explanation: "나치즘의 교리." },
             { id: 79, unit: "V. 세계 대전과 사회 변동", type: "choice", question: "스페인 내전 당시 피카소가 그린 반전 그림은?", answer: "게르니카", options: ["게르니카", "절규", "해바라기", "별이 빛나는 밤"], explanation: "나치의 민간인 폭격 비판." },
-            { id: 80, unit: "V. 세계 대전과 사회 변동", type: "word", question: "미국이 일본에 원자폭탄을 투하한 두 도시는? (히로시마, [ _____ ])", answer: "나가사키", explanation: "전쟁 종결." }
+            { id: 80, unit: "V. 세계 대전과 사회 변동", type: "word", question: "미국이 일본에 원자폭탄을 투하한 두 도시는? (히로시마, [ _____ ])", answer: "나가사키", explanation: "전쟁 종결." },
+            // O/X 문제 81~85 (신설)
+            { id: 81, unit: "I. 문명의 발생과 고대 세계의 형성", type: "ox", question: "로마의 첫 번째 황제는 카이사르이다.", answer: "X", explanation: "초대 황제는 옥타비아누스입니다." },
+            { id: 82, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "ox", question: "십자군 전쟁은 교황권을 더욱 강화시켰다.", answer: "X", explanation: "전쟁 실패로 교황권은 쇠퇴했습니다." },
+            { id: 83, unit: "II. 세계 종교의 확산과 지역 문화의 형성", type: "ox", question: "르네상스는 인간 중심의 문화를 부활시키려 했다.", answer: "O", explanation: "신 중심에서 인간 중심으로의 전환입니다." },
+            { id: 84, unit: "IV. 제국주의 침략과 국민 국가 건설 운동", type: "ox", question: "산업혁명은 영국에서 가장 먼저 시작되었다.", answer: "O", explanation: "자본, 자원, 노동력 등이 풍부했습니다." },
+            { id: 85, unit: "V. 세계 대전과 사회 변동", type: "ox", question: "제1차 세계 대전의 직접적 원인은 사라예보 사건이다.", answer: "O", explanation: "오스트리아 황태자 부부가 암살된 사건입니다." }
         ];
 
-        /* 앱 로직 */
         const app = {
             state: { student:{}, questions:[], allQuestions:[], currentIndex:0, answers:{}, score:0, isTeacherMode:false, timer:null, timeLeft:60, isTimeOut:false, customBank:[], logs:[] },
             
             init: function() {
                 const btnTeacher = document.getElementById('btn-teacher-mode');
                 if(btnTeacher) btnTeacher.onclick = () => this.toggleTeacherMode();
-                
-                // [서버에서 문제 불러오기 (동기화)]
                 this.loadQuestionsFromFirebase();
             },
 
             loadQuestionsFromFirebase: function() {
                 if(!db) { 
-                    // DB 연결 실패 시 로컬 기본값 사용
                     this.state.allQuestions = [...defaultQuestions];
-                    return;
+                    return; 
                 }
-
-                // 1. 서버에서 커스텀 문제 가져오기
                 db.collection("quiz_questions").get().then((querySnapshot) => {
                     if (querySnapshot.empty) {
-                        // 서버가 비어있으면 기본 80문제 업로드 (최초 1회 실행 효과)
                         this.uploadDefaultQuestions();
                     } else {
                         const loadedData = [];
                         querySnapshot.forEach((doc) => {
                             loadedData.push(doc.data());
                         });
-                        // ID 순 정렬
                         loadedData.sort((a, b) => a.id - b.id);
                         this.state.allQuestions = loadedData;
-                        console.log("서버에서 문제 로드 완료:", this.state.allQuestions.length);
                     }
                 }).catch((error) => {
-                    console.error("문제 로드 실패:", error);
                     this.state.allQuestions = [...defaultQuestions];
                 });
             },
@@ -491,22 +348,17 @@
                     batch.set(docRef, q);
                 });
                 batch.commit().then(() => {
-                    console.log("기본 문제 서버 업로드 완료");
                     this.state.allQuestions = [...defaultQuestions];
                 });
             },
 
-            // --- 퀴즈 로직 ---
             startQuiz: function() {
                 const cls = document.getElementById('input-class').value;
                 const num = document.getElementById('input-number').value;
                 const name = document.getElementById('input-name').value.trim();
                 if(!cls || !num || !name) { alert("정보를 모두 입력하세요."); return; }
                 this.state.student = { class:cls, number:num, name:name };
-                
-                if(this.state.allQuestions.length === 0) {
-                     this.state.allQuestions = [...defaultQuestions]; // 안전장치
-                }
+                if(this.state.allQuestions.length === 0) this.state.allQuestions = [...defaultQuestions];
                 const shuffled = this.shuffleArray([...this.state.allQuestions]);
                 this.state.questions = shuffled.slice(0, 5);
                 this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; this.state.isTimeOut = false;
@@ -537,7 +389,7 @@
             renderQuestion: function() {
                 const q = this.state.questions[this.state.currentIndex];
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
-                document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'빈칸','word':'단답','order':'순서'}[q.type] || '문제';
+                document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'단답','word':'단답','order':'순서','ox':'O/X'}[q.type] || '문제';
                 
                 const unitEl = document.getElementById('question-unit');
                 if(unitEl) unitEl.innerText = q.unit || "기타";
@@ -556,7 +408,6 @@
                         const isSelected = (this.tempAnswer === opt);
                         btn.className = isSelected ? "w-full text-left p-4 rounded border-2 border-amber-600 bg-amber-600 text-white font-bold shadow-sm" : "w-full text-left p-4 rounded border border-stone-200 hover:bg-stone-50 bg-white";
                         const spanClass = isSelected ? "w-6 h-6 rounded-full bg-white text-amber-600 inline-flex items-center justify-center text-xs font-bold mr-3" : "w-6 h-6 rounded-full bg-stone-200 inline-flex items-center justify-center text-xs font-bold mr-3";
-                        
                         btn.innerHTML = `<span class="${spanClass}">${i+1}</span> ${opt}`;
                         btn.onclick = () => {
                             Array.from(grid.children).forEach(c => {
@@ -570,20 +421,42 @@
                         grid.appendChild(btn);
                     });
                     area.appendChild(grid);
+                } else if(q.type === 'ox') {
+                    const box = document.createElement('div'); box.className="flex gap-4 h-40";
+                    
+                    const btnO = document.createElement('button');
+                    btnO.className = "flex-1 ox-btn btn-o";
+                    btnO.innerText = "O";
+                    if (this.tempAnswer === 'O') btnO.classList.add('selected');
+
+                    const btnX = document.createElement('button');
+                    btnX.className = "flex-1 ox-btn btn-x";
+                    btnX.innerText = "X";
+                    if (this.tempAnswer === 'X') btnX.classList.add('selected');
+
+                    btnO.onclick = () => {
+                        this.tempAnswer = 'O';
+                        btnO.classList.add('selected');
+                        btnX.classList.remove('selected');
+                    };
+                    btnX.onclick = () => {
+                        this.tempAnswer = 'X';
+                        btnX.classList.add('selected');
+                        btnO.classList.remove('selected');
+                    };
+                    box.append(btnO, btnX);
+                    area.appendChild(box);
+
                 } else if(q.type === 'order') {
                     this.orderTemp = this.tempAnswer ? this.tempAnswer.split('-') : [];
                     const box = document.createElement('div'); box.className="border-2 dashed border-amber-300 rounded p-4 mb-3 bg-amber-50 min-h-[50px] flex flex-wrap gap-2";
                     const opts = document.createElement('div'); opts.className="flex flex-wrap gap-2";
                     
-                    // [수정] 순서 맞추기 버튼 스타일 (가시성 확보)
                     const renderButton = (text, isSelected) => {
                         const btn = document.createElement('button');
                         btn.innerText = text;
-                        if (isSelected) {
-                             btn.className = "px-3 py-2 rounded shadow-sm text-sm font-bold seq-btn seq-btn-selected";
-                        } else {
-                             btn.className = "px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default";
-                        }
+                        if (isSelected) btn.className = "seq-btn seq-btn-selected";
+                        else btn.className = "seq-btn seq-btn-default";
                         return btn;
                     };
 
@@ -591,7 +464,7 @@
                         const btn = renderButton(opt, true);
                         btn.onclick = () => {
                             opts.appendChild(btn); 
-                            btn.className = "px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default";
+                            btn.className = "seq-btn seq-btn-default";
                             this.orderTemp = this.orderTemp.filter(x=>x!==opt);
                         };
                         box.appendChild(btn);
@@ -602,11 +475,11 @@
                         btn.onclick = () => {
                             if(btn.parentElement===opts) { 
                                 box.appendChild(btn); 
-                                btn.className = "px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-selected";
+                                btn.className = "seq-btn seq-btn-selected";
                                 this.orderTemp.push(opt); 
                             } else { 
                                 opts.appendChild(btn); 
-                                btn.className = "px-3 py-2 rounded shadow-sm text-sm seq-btn seq-btn-default";
+                                btn.className = "seq-btn seq-btn-default";
                                 this.orderTemp = this.orderTemp.filter(x=>x!==opt); 
                             }
                         };
@@ -630,11 +503,7 @@
                 } else {
                     if (this.tempAnswer) this.state.answers[q.id] = this.tempAnswer;
                 }
-                
-                if (this.state.currentIndex > 0) {
-                    this.state.currentIndex--;
-                    this.renderQuestion();
-                }
+                if (this.state.currentIndex > 0) { this.state.currentIndex--; this.renderQuestion(); }
             },
 
             submitAnswer: function() {
@@ -654,7 +523,10 @@
                 this.state.questions.forEach(q => {
                     const u = (this.state.answers[q.id]||"").toString().replace(/\s+/g,'').trim();
                     const a = q.answer.toString().replace(/\s+/g,'').trim();
-                    let isC = (q.type==='word') ? (u.includes(a)||a.includes(u)) : (u===a);
+                    let isC = false;
+                    if(q.type === 'word' || q.type === 'blank') isC = (u.includes(a)||a.includes(u));
+                    else isC = (u === a);
+                    
                     if(isC) correct++; else details.push({q:q.question, u:u||"미입력", a:q.answer, exp:q.explanation});
                 });
                 this.state.score = correct * 20; this.state.incorrectDetails = details;
@@ -673,7 +545,7 @@
             // --- Firebase 저장 ---
             saveToFirebase: function() {
                 const status = document.getElementById('submission-status');
-                if(!db) { status.innerHTML = "⚠️ DB 연결 실패 (설정 필요)"; return; }
+                if(!db) { status.innerHTML = "⚠️ DB 연결 실패"; return; }
                 const data = { timestamp: firebase.firestore.FieldValue.serverTimestamp(), timeString: new Date().toLocaleString(), class: this.state.student.class, number: this.state.student.number, name: this.state.student.name, score: this.state.score, status: this.state.isTimeOut ? "시간초과" : "완료" };
                 db.collection("quiz_results").add(data).then(() => { status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold"; status.innerHTML = '<i class="fas fa-check-circle"></i> 제출 완료!'; }).catch((error) => { console.error("Error: ", error); status.className = "bg-red-100 text-red-700 p-3 rounded text-sm mb-6 border border-red-200"; status.innerHTML = '⚠️ 전송 실패. (네트워크 확인)'; });
             },
@@ -752,7 +624,7 @@
                 link.download = "역사평가_결과.csv"; link.click();
             },
             
-            // --- 문제 수정 기능 ---
+            // --- 문제 수정 기능 (1~80번 포함) ---
             editQuestion: function(id) {
                 const q = this.state.allQuestions.find(q => q.id === id);
                 if(!q) return;
@@ -790,9 +662,9 @@
                     options = optText.split(',').map(s => s.trim());
                 }
 
+                // 1~80번 문제 포함 모든 문제 수정 시 Firebase에 저장하여 덮어쓰기
                 const updatedQ = { id, unit, type, question: text, options, answer, explanation: exp };
                 
-                // Firestore 업데이트
                 db.collection("quiz_questions").doc(String(id)).set(updatedQ).then(() => {
                     alert("수정되었습니다.");
                     this.closeEditModal();
@@ -802,7 +674,7 @@
 
             renderBank: function() {
                 document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
-                // [수정] 테이블 HTML 생성 - 구분선 및 정답칸 배경 적용
+                // 테이블 HTML 생성 - 구분선 및 정답칸 배경 적용
                 document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
                     `<tr class="border-b hover:bg-stone-50 cursor-pointer" onclick="app.editQuestion(${q.id})">
                         <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
@@ -810,7 +682,7 @@
                             <div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div>
                         </td>
                         <td class="p-3 text-center">
-                            <span class="bg-stone-100 border px-1 rounded text-xs">${q.type}</span>
+                            <span class="bg-stone-100 border px-1 rounded text-xs">${{'choice':'객관','word':'단답','order':'순서','ox':'O/X'}[q.type]}</span>
                         </td>
                         <td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium break-words max-w-xs border-r border-stone-300">
                             ${q.question}
@@ -824,11 +696,13 @@
             
             toggleOptionInput: function(prefix) {
                 const t = document.getElementById(prefix + '-q-type').value;
-                document.getElementById('option-container-' + prefix).classList.toggle('hidden', !(t==='choice'||t==='order'));
+                const container = document.getElementById('option-container-' + prefix);
+                if (t === 'choice' || t === 'order') container.classList.remove('hidden');
+                else container.classList.add('hidden');
             },
             
             updateNextQuestionNumber: function() {
-                // [핵심 수정] 최대값 + 1 로직 (기본 80번 보장)
+                // 최대값 + 1 로직 (기본 80번 보장)
                 const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 80); 
                 const nextId = (maxId > 0) ? maxId + 1 : 81;
                 document.getElementById('next-q-id-display').innerText = `현재 ${nextId}번 문제 생성 중`;
@@ -848,19 +722,10 @@
                     o = ot.split(',').map(s=>s.trim());
                 }
                 
-                // [핵심 수정] 81번부터 번호 매기기 로직
                 const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 80);
                 const newId = (maxId > 0) ? maxId + 1 : 81;
 
-                const newQ = { 
-                    id: newId, 
-                    unit: unit, 
-                    type: t, 
-                    question: q, 
-                    options: o.length ? o : null, 
-                    answer: a, 
-                    explanation: e || "해설 없음" 
-                };
+                const newQ = { id: newId, unit: unit, type: t, question: q, options: o.length ? o : null, answer: a, explanation: e || "해설 없음" };
                 
                 // Firestore 저장
                 db.collection("quiz_questions").doc(String(newId)).set(newQ).then(() => {
@@ -881,14 +746,12 @@
                     db.collection("quiz_questions").get().then(snapshot => {
                         const batch = db.batch();
                         snapshot.docs.forEach(doc => {
-                            if (parseInt(doc.id) > 80) { // 81번부터 삭제
-                                batch.delete(doc.ref);
-                            }
+                            if (parseInt(doc.id) > 80) { batch.delete(doc.ref); }
                         });
                         return batch.commit();
                     }).then(() => {
                         alert("초기화되었습니다.");
-                        this.uploadDefaultQuestions(); // 리셋
+                        this.uploadDefaultQuestions(); 
                         if(!document.getElementById('tab-add').classList.contains('hidden')) {
                             this.updateNextQuestionNumber();
                         }
