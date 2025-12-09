@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (호환성 높은 버전) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -41,7 +41,6 @@
         .admin-table th:not(:last-child), .admin-table td:not(:last-child) { border-right: 2px solid #d6d3d1; }
         .col-answer { background-color: #fffbeb; color: #b45309; font-weight: bold; }
 
-        /* 버튼 스타일 */
         .seq-btn { padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #d1d5db; transition: all 0.2s; cursor: pointer; margin: 4px; }
         .seq-btn-default { background-color: #ffffff !important; color: #1f2937 !important; }
         .seq-btn-selected { background-color: #d97706 !important; color: #ffffff !important; border-color: #b45309 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -58,30 +57,24 @@
         .logo-btn { cursor: pointer; transition: opacity 0.2s; }
         .logo-btn:hover { opacity: 0.8; }
         
-        /* 이미지 스타일 */
-        .q-image-thumb { 
-            max-width: 100%; max-height: 250px; 
-            border-radius: 8px; margin: 10px auto; 
-            border: 1px solid #e5e7eb; display: block; object-fit: contain; 
-            cursor: zoom-in;
-            transition: transform 0.2s;
-        }
+        .q-image-thumb { max-width: 100%; max-height: 250px; border-radius: 8px; margin: 10px auto; border: 1px solid #e5e7eb; display: block; object-fit: contain; cursor: zoom-in; transition: transform 0.2s; }
         .q-image-thumb:hover { transform: scale(1.02); }
 
-        /* 이미지 확대 모달 */
         #image-zoom-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; cursor: zoom-out; }
-        #image-zoom-content { max-width: 95%; max-height: 95%; border-radius: 4px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        #image-zoom-content { max-width: 95%; max-height: 95%; border-radius: 4px; }
+        
+        /* 정답률 바 */
+        .rate-bar-bg { background-color: #e5e7eb; height: 6px; border-radius: 3px; overflow: hidden; width: 100%; margin-top: 4px; }
+        .rate-bar-fill { height: 100%; }
     </style>
 </head>
 <body class="text-stone-800 min-h-screen flex flex-col">
 
-    <!-- 로딩 오버레이 -->
     <div id="loading-overlay">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-amber-600 border-solid mb-4"></div>
         <p class="text-xl font-bold text-stone-700" id="loading-text">데이터 처리 중...</p>
     </div>
 
-    <!-- 이미지 확대 모달 -->
     <div id="image-zoom-modal" onclick="app.closeImageZoom()">
         <img id="image-zoom-content" src="" alt="확대 이미지">
     </div>
@@ -141,12 +134,12 @@
             </div>
             <div class="bg-white p-6 md:p-10 rounded-lg min-h-[400px] flex flex-col relative shadow-md">
                 <div class="mb-4">
-                    <span id="student-question-unit" class="inline-block bg-stone-100 text-stone-500 text-xs font-bold px-2 py-1 rounded mb-1"></span>
+                    <!-- [복구] 단원명 표시 -->
+                    <span id="student-question-unit" class="inline-block bg-stone-100 text-stone-500 text-xs font-bold px-2 py-1 rounded mb-1 border border-stone-200"></span>
                     <div class="flex justify-between items-center">
                         <span id="question-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded border border-amber-200">유형</span>
                     </div>
                 </div>
-                <!-- 이미지 영역 -->
                 <div id="question-image-area" class="mb-4 hidden text-center">
                     <img id="question-image" src="" alt="문제 이미지" class="q-image-thumb" onclick="app.openImageZoom(this.src)">
                     <p class="text-[10px] text-gray-400 mt-1">이미지를 클릭하면 확대됩니다.</p>
@@ -184,12 +177,12 @@
         <!-- 4. 교사 대시보드 -->
         <section id="view-teacher" class="hidden max-w-6xl mx-auto bg-white p-6 rounded shadow-xl mt-4 border border-stone-300 relative">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <div><h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2><p class="text-xs text-stone-500 mt-1">비밀번호: **** | <span class="text-blue-600 font-bold">Firebase 연동됨</span></p></div>
+                <div><h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2><p class="text-xs text-stone-500 mt-1">비밀번호: 19960423 | <span class="text-blue-600 font-bold">Firebase 연동됨</span></p></div>
                 <button onclick="app.closeTeacherMode()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 px-4 py-2 rounded text-sm font-bold">나가기</button>
             </div>
             <div class="flex flex-wrap gap-2 mb-6">
                 <button onclick="app.setTeacherTab('log')" id="btn-tab-log" class="px-5 py-2 rounded-full bg-stone-800 text-white text-sm font-bold shadow transition"><i class="fas fa-list mr-1"></i> 실시간 기록</button>
-                <button onclick="app.setTeacherTab('bank')" id="btn-tab-bank" class="px-5 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-bold hover:bg-stone-200 shadow transition"><i class="fas fa-database mr-1"></i> 문제 은행</button>
+                <button onclick="app.setTeacherTab('bank')" id="btn-tab-bank" class="px-5 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-bold hover:bg-stone-200 shadow transition"><i class="fas fa-database mr-1"></i> 문제 은행 & 분석</button>
                 <button onclick="app.setTeacherTab('add')" id="btn-tab-add" class="px-5 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-bold hover:bg-stone-200 shadow transition"><i class="fas fa-plus-circle mr-1"></i> 문제 추가/업로드</button>
             </div>
 
@@ -208,12 +201,18 @@
                 </div>
             </div>
 
-            <!-- 탭: 문제 은행 -->
+            <!-- 탭: 문제 은행 (정답률 포함) -->
             <div id="tab-bank" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-4 bg-stone-50 p-3 rounded border border-stone-200 gap-3">
                     <div class="flex items-center gap-2"><h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3></div>
                     <div class="flex gap-2 flex-wrap">
-                        <select id="bank-sort" onchange="app.renderBank()" class="p-2 border rounded text-xs"><option value="id">번호순</option><option value="unit">단원순</option><option value="type">유형순</option></select>
+                        <select id="bank-sort" onchange="app.renderBank()" class="p-2 border rounded text-xs">
+                            <option value="id">번호순</option>
+                            <option value="unit">단원순</option>
+                            <!-- [복구] 정답률 필터 -->
+                            <option value="rate_asc">정답률 낮은 순 (취약)</option>
+                            <option value="rate_desc">정답률 높은 순</option>
+                        </select>
                         <select id="bank-filter-unit" onchange="app.renderBank()" class="p-2 border rounded text-xs w-32"><option value="all">모든 단원</option><option value="I.">I. 고대</option><option value="II.">II. 종교/문화</option><option value="III.">III. 지역교류</option><option value="IV.">IV. 제국주의</option><option value="V.">V. 세계대전</option></select>
                         <button onclick="app.resetServerQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm"><i class="fas fa-trash-alt mr-1"></i> 초기화</button>
                     </div>
@@ -221,7 +220,15 @@
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
                     <table class="w-full text-sm text-left admin-table table-bordered">
                         <thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold">
-                            <tr><th class="p-3 w-16 text-center">ID</th><th class="p-3 w-32">단원</th><th class="p-3 w-20 text-center">유형</th><th class="p-3">문제 (클릭하여 수정)</th><th class="p-3 w-20 text-center">미리보기</th><th class="p-3 w-32 col-answer text-center">정답</th></tr>
+                            <tr>
+                                <th class="p-3 w-16 text-center">ID</th>
+                                <th class="p-3 w-32">단원</th>
+                                <th class="p-3 w-20 text-center">유형</th>
+                                <th class="p-3">문제 (클릭하여 수정)</th>
+                                <th class="p-3 w-20 text-center">미리보기</th>
+                                <th class="p-3 w-32 col-answer text-center">정답</th>
+                                <th class="p-3 w-24 text-center">정답률</th>
+                            </tr>
                         </thead>
                         <tbody id="bank-body" class="bg-white"></tbody>
                     </table>
@@ -236,13 +243,7 @@
                         <div class="space-y-4">
                             <div><label class="block text-sm font-bold mb-1">단원 선택</label><select id="new-q-unit" class="w-full p-2 border rounded bg-white"><option value="I. 문명의 발생과 고대 세계의 형성">I. 고대 세계</option><option value="II. 세계 종교의 확산과 지역 문화의 형성">II. 세계 종교/지역 문화</option><option value="III. 지역 세계의 교류와 변화">III. 지역 세계 교류</option><option value="IV. 제국주의 침략과 국민 국가 건설 운동">IV. 제국주의/국민 국가</option><option value="V. 세계 대전과 사회 변동">V. 세계 대전/사회 변동</option></select></div>
                             <div><label class="block text-sm font-bold mb-1">유형</label><select id="new-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('new')"><option value="choice">객관식</option><option value="word">단답형</option><option value="order">순서 맞추기</option><option value="ox">O/X 퀴즈</option></select></div>
-                            <div>
-                                <label class="block text-sm font-bold mb-1">이미지 (선택)</label>
-                                <input type="file" id="new-q-image" accept="image/*" class="w-full text-xs p-2 border rounded bg-white" onchange="app.handleImageUpload(this, 'new')">
-                                <p class="text-xs text-gray-500 mt-1">* 고화질 이미지는 자동으로 최적화되어 저장됩니다.</p>
-                                <img id="new-q-image-preview" class="hidden mt-2 h-20 rounded border border-gray-300">
-                                <input type="hidden" id="new-q-image-base64">
-                            </div>
+                            <div><label class="block text-sm font-bold mb-1">이미지 (선택)</label><input type="file" id="new-q-image" accept="image/*" class="w-full text-xs p-2 border rounded bg-white" onchange="app.handleImageUpload(this, 'new')"><p class="text-xs text-gray-500 mt-1">* 자동 최적화</p><img id="new-q-image-preview" class="hidden mt-2 h-20 rounded border border-gray-300"><input type="hidden" id="new-q-image-base64"></div>
                             <div><label class="block text-sm font-bold mb-1">문제</label><textarea id="new-q-text" class="w-full p-2 border rounded h-20"></textarea></div>
                             <div id="option-container-new"><label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label><input type="text" id="new-q-options" class="w-full p-2 border rounded" placeholder="예: A, B, C, D"></div>
                             <div><label class="block text-sm font-bold mb-1">정답</label><input type="text" id="new-q-answer" class="w-full p-2 border rounded"></div>
@@ -252,7 +253,7 @@
                     </div>
                     <div class="bg-green-50 p-6 rounded border border-green-200 h-fit">
                         <h3 class="font-bold text-xl mb-4 border-b pb-2 text-green-800">엑셀 일괄 업로드</h3>
-                        <p class="text-sm text-green-700 mb-4">엑셀 파일을 업로드하여 문제를 한 번에 추가할 수 있습니다.<br>* 기존 문제는 유지되고 번호가 이어서 생성됩니다.</p>
+                        <p class="text-sm text-green-700 mb-4">엑셀 파일로 문제를 한 번에 추가할 수 있습니다.</p>
                         <input type="file" id="excel-file" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200 mb-4"/>
                         <button onclick="app.uploadExcel()" class="w-full bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700 transition shadow"><i class="fas fa-file-upload mr-1"></i> 엑셀 업로드 시작</button>
                         <div class="mt-4 text-center"><button onclick="app.downloadTemplate()" class="text-xs text-gray-500 underline hover:text-blue-500">엑셀 양식 다운로드</button></div>
@@ -270,14 +271,7 @@
                 <div class="space-y-4">
                     <div><label class="block text-sm font-bold mb-1">단원</label><select id="edit-q-unit" class="w-full p-2 border rounded"><option value="I. 문명의 발생과 고대 세계의 형성">I. 고대 세계</option><option value="II. 세계 종교의 확산과 지역 문화의 형성">II. 세계 종교</option><option value="III. 지역 세계의 교류와 변화">III. 지역 세계</option><option value="IV. 제국주의 침략과 국민 국가 건설 운동">IV. 제국주의</option><option value="V. 세계 대전과 사회 변동">V. 세계 대전</option></select></div>
                     <div><label class="block text-sm font-bold mb-1">유형</label><select id="edit-q-type" class="w-full p-2 border rounded" onchange="app.toggleOptionInput('edit')"><option value="choice">객관식</option><option value="word">단답형</option><option value="order">순서 맞추기</option><option value="ox">O/X 퀴즈</option></select></div>
-                    <!-- 이미지 수정 -->
-                    <div>
-                        <label class="block text-sm font-bold mb-1">이미지 수정</label>
-                        <input type="file" id="edit-q-image-input" accept="image/*" class="w-full text-xs p-2 border rounded" onchange="app.handleImageUpload(this, 'edit')">
-                        <img id="edit-q-image-preview" class="hidden q-image-thumb mt-2">
-                        <input type="hidden" id="edit-q-image-base64">
-                        <button onclick="app.removeEditImage()" class="text-red-500 text-xs mt-1 hover:underline">이미지 삭제</button>
-                    </div>
+                    <div><label class="block text-sm font-bold mb-1">이미지 수정</label><input type="file" id="edit-q-image-input" accept="image/*" class="w-full text-xs p-2 border rounded" onchange="app.handleImageUpload(this, 'edit')"><img id="edit-q-image-preview" class="hidden q-image-thumb mt-2"><input type="hidden" id="edit-q-image-base64"><button onclick="app.removeEditImage()" class="text-red-500 text-xs mt-1 hover:underline">이미지 삭제</button></div>
                     <div><label class="block text-sm font-bold mb-1">문제</label><textarea id="edit-q-text" class="w-full p-2 border rounded h-20"></textarea></div>
                     <div id="option-container-edit"><label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label><input type="text" id="edit-q-options" class="w-full p-2 border rounded"></div>
                     <div><label class="block text-sm font-bold mb-1">정답</label><input type="text" id="edit-q-answer" class="w-full p-2 border rounded"></div>
@@ -287,18 +281,12 @@
             </div>
         </div>
 
-        <!-- 미리보기 모달 -->
         <div id="preview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
             <div class="modal-overlay absolute inset-0" onclick="document.getElementById('preview-modal').classList.add('hidden')"></div>
             <div class="bg-white p-8 rounded-lg shadow-2xl z-10 w-full max-w-lg mx-4 border-t-8 border-amber-500 max-h-[80vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="bg-stone-100 text-stone-600 text-xs font-bold px-2 py-1 rounded">미리보기 모드 (실제 작동)</span>
-                    <button onclick="document.getElementById('preview-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
-                </div>
+                <div class="flex justify-between items-center mb-4"><span class="bg-stone-100 text-stone-600 text-xs font-bold px-2 py-1 rounded">미리보기</span><button onclick="document.getElementById('preview-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button></div>
                 <div id="preview-content"></div>
-                <div class="mt-6 text-center">
-                     <button onclick="document.getElementById('preview-modal').classList.add('hidden')" class="bg-stone-200 px-4 py-2 rounded text-sm font-bold hover:bg-stone-300">닫기</button>
-                </div>
+                <div class="mt-6 text-center"><button onclick="document.getElementById('preview-modal').classList.add('hidden')" class="bg-stone-200 px-4 py-2 rounded text-sm font-bold hover:bg-stone-300">닫기</button></div>
             </div>
         </div>
 
@@ -312,14 +300,11 @@
         const firebaseConfig = { apiKey: "AIzaSyAOlPQ5PFmL0zxmGrGcuEBnqBXisph7kPU", authDomain: "history-quiz-yongsin.firebaseapp.com", projectId: "history-quiz-yongsin", storageBucket: "history-quiz-yongsin.firebasestorage.app", messagingSenderId: "177587430482", appId: "1:177587430482:web:d79cc145c11e335cc3ab8b", measurementId: "G-LHN97D7R2R" };
         let db; try { if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } db = firebase.firestore(); } catch(e) { alert("Firebase 오류"); }
 
-        /* 초기 문제 리스트 비움 */
         const defaultQuestions = []; 
-        
-        /* 암호화 제거된 비밀번호 */
         const TEACHER_PW = "19960423";
 
         const app = {
-            state: { student:{}, questions:[], allQuestions:[], currentIndex:0, answers:{}, score:0, isTeacherMode:false, timer:null, timeLeft:60, isTimeOut:false, customBank:[], logs:[], isQuizActive: false },
+            state: { student:{}, questions:[], allQuestions:[], currentIndex:0, answers:{}, score:0, isTeacherMode:false, timer:null, timeLeft:60, isTimeOut:false, customBank:[], logs:[], isQuizActive: false, questionStats: {} },
             
             init: function() {
                 const btnTeacher = document.getElementById('btn-teacher-mode');
@@ -331,7 +316,7 @@
                 if(this.state.isQuizActive) {
                     if(confirm("정말 문제 응시를 포기하고 메인 화면으로 이동하겠습니까? 이동 시 5분 간 재응시 불가합니다.")) {
                         this.state.isTimeOut = true; 
-                        this.saveToFirebase(); 
+                        this.saveToFirebase([]); 
                         this.showView('view-login');
                         this.state.isQuizActive = false;
                         clearInterval(this.state.timer);
@@ -341,20 +326,9 @@
                 }
             },
 
-            showLoading: function(show) {
-                document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
-            },
-            
-            openImageZoom: function(src) {
-                const modal = document.getElementById('image-zoom-modal');
-                const content = document.getElementById('image-zoom-content');
-                content.src = src;
-                modal.style.display = 'flex';
-            },
-            
-            closeImageZoom: function() {
-                document.getElementById('image-zoom-modal').style.display = 'none';
-            },
+            showLoading: function(show) { document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none'; },
+            openImageZoom: function(src) { const m = document.getElementById('image-zoom-modal'); document.getElementById('image-zoom-content').src = src; m.style.display = 'flex'; },
+            closeImageZoom: function() { document.getElementById('image-zoom-modal').style.display = 'none'; },
 
             loadQuestionsFromFirebase: function() {
                 if(!db) return;
@@ -368,16 +342,12 @@
                     });
                     loadedData.sort((a, b) => a.id - b.id);
                     this.state.allQuestions = loadedData;
-                    console.log("문제 로드 완료:", loadedData.length);
                     this.showLoading(false);
                     if(this.state.isTeacherMode) this.renderBank();
-                }).catch((error) => {
-                    console.error("문제 로드 실패:", error);
-                    this.showLoading(false);
-                    this.state.allQuestions = [];
-                });
+                }).catch((error) => { console.error(error); this.showLoading(false); this.state.allQuestions = []; });
             },
 
+            // [수정: 5분 중복 체크 확실하게]
             startQuiz: async function() {
                 const cls = document.getElementById('input-class').value;
                 const num = document.getElementById('input-number').value;
@@ -385,34 +355,22 @@
                 if(!cls || !num || !name) { alert("정보를 모두 입력하세요."); return; }
                 
                 this.showLoading(true);
-                
                 try {
                     const logsRef = db.collection("quiz_results");
-                    const snapshot = await logsRef
-                        .where("class", "==", cls)
-                        .where("number", "==", num)
-                        .where("name", "==", name)
-                        .get();
-
+                    const snapshot = await logsRef.where("class", "==", cls).where("number", "==", num).where("name", "==", name).get();
                     let recentSubmission = null;
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         if (data.timestamp) {
                             const date = data.timestamp.toDate();
-                            if (!recentSubmission || date > recentSubmission) {
-                                recentSubmission = date;
-                            }
+                            if (!recentSubmission || date > recentSubmission) recentSubmission = date;
                         }
                     });
-
                     if (recentSubmission) {
-                        const now = new Date();
-                        const diffMs = now - recentSubmission;
-                        const diffMins = diffMs / (1000 * 60);
+                        const diffMins = (new Date() - recentSubmission) / (1000 * 60);
                         if (diffMins < 5) {
                             this.showLoading(false);
-                            const waitTime = Math.ceil(5 - diffMins);
-                            alert(`이미 제출하셨습니다.\n${waitTime}분 뒤에 다시 시도할 수 있습니다.`);
+                            alert(`이미 제출하셨습니다.\n${Math.ceil(5 - diffMins)}분 뒤에 다시 시도할 수 있습니다.`);
                             return;
                         }
                     }
@@ -421,14 +379,31 @@
                 this.showLoading(false);
                 this.state.student = { class:cls, number:num, name:name };
                 if(this.state.allQuestions.length === 0) { alert("문제가 없습니다. 선생님께 문의하세요."); return; }
-                const unitGroups = {}; this.state.allQuestions.forEach(q => { const u = q.unit || "기타"; if(!unitGroups[u]) unitGroups[u] = []; unitGroups[u].push(q); });
+
+                // 단원별 출제
+                const unitGroups = {};
+                this.state.allQuestions.forEach(q => {
+                    const u = q.unit || "기타";
+                    if(!unitGroups[u]) unitGroups[u] = [];
+                    unitGroups[u].push(q);
+                });
                 const targetUnits = ["I. 문명의 발생과 고대 세계의 형성", "II. 세계 종교의 확산과 지역 문화의 형성", "III. 지역 세계의 교류와 변화", "IV. 제국주의 침략과 국민 국가 건설 운동", "V. 세계 대전과 사회 변동"];
                 const selectedQuestions = []; const usedIds = new Set();
-                targetUnits.forEach(u => { if(unitGroups[u] && unitGroups[u].length > 0) { const randIdx = Math.floor(Math.random() * unitGroups[u].length); const q = unitGroups[u][randIdx]; selectedQuestions.push(q); usedIds.add(q.id); } });
-                if (selectedQuestions.length < 5) { const remainingPool = this.state.allQuestions.filter(q => !usedIds.has(q.id)); const shuffledRemaining = this.shuffleArray(remainingPool); const needed = 5 - selectedQuestions.length; for(let i=0; i<needed; i++) { if(shuffledRemaining[i]) selectedQuestions.push(shuffledRemaining[i]); } }
+                targetUnits.forEach(u => {
+                    if(unitGroups[u] && unitGroups[u].length > 0) {
+                        const q = unitGroups[u][Math.floor(Math.random() * unitGroups[u].length)];
+                        selectedQuestions.push(q); usedIds.add(q.id);
+                    }
+                });
+                if (selectedQuestions.length < 5) {
+                    const remaining = this.state.allQuestions.filter(q => !usedIds.has(q.id));
+                    const shuffled = this.shuffleArray(remaining);
+                    for(let i=0; i < 5-selectedQuestions.length; i++) if(shuffled[i]) selectedQuestions.push(shuffled[i]);
+                }
+                
                 this.state.questions = this.shuffleArray(selectedQuestions);
-                this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; this.state.isTimeOut = false;
-                this.state.isQuizActive = true; 
+                this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; 
+                this.state.isTimeOut = false; this.state.isQuizActive = true; 
                 this.showView('view-quiz'); this.renderQuestion(); this.startTimer();
             },
             
@@ -439,7 +414,10 @@
                 const q = this.state.questions[this.state.currentIndex];
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
                 document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'단답','word':'단답','order':'순서','ox':'O/X'}[q.type] || '문제';
+                
+                // [복구] 단원명 표시
                 document.getElementById('student-question-unit').innerText = q.unit || "기타";
+                
                 const imgArea = document.getElementById('question-image-area'); const imgTag = document.getElementById('question-image');
                 if (q.image) { imgTag.src = q.image; imgArea.classList.remove('hidden'); } else { imgArea.classList.add('hidden'); }
                 document.getElementById('question-text').innerText = q.question;
@@ -495,48 +473,120 @@
             },
             prevQuestion: function() { const q = this.state.questions[this.state.currentIndex]; if (q.type === 'order') { if (this.orderTemp && this.orderTemp.length > 0) this.state.answers[q.id] = this.orderTemp.join('-'); } else { if (this.tempAnswer) this.state.answers[q.id] = this.tempAnswer; } if (this.state.currentIndex > 0) { this.state.currentIndex--; this.renderQuestion(); } },
             submitAnswer: function() { const q = this.state.questions[this.state.currentIndex]; let ans = this.tempAnswer; if(q.type==='order') { if(!this.orderTemp || this.orderTemp.length !== q.options.length) { alert("순서를 완성하세요"); return; } ans = this.orderTemp.join('-'); } else if(!ans) { alert("정답을 입력하세요"); return; } this.state.answers[q.id] = ans; if(this.state.currentIndex < 4) { this.state.currentIndex++; this.renderQuestion(); } else this.finishQuiz(); },
-            finishQuiz: function() { clearInterval(this.state.timer); this.state.isQuizActive = false; let correct = 0; let details = []; this.state.questions.forEach(q => { const u = (this.state.answers[q.id]||"").toString().replace(/\s+/g,'').trim(); const a = q.answer.toString().replace(/\s+/g,'').trim(); let isC = false; if (q.type === 'word' || q.type === 'blank') isC = (u.includes(a)||a.includes(u)); else isC = (u === a); if(isC) correct++; else details.push({q:q.question, u:u||"미입력", a:q.answer, exp:q.explanation}); }); this.state.score = correct * 20; this.state.incorrectDetails = details; this.showView('view-results'); this.renderResults(); this.saveToFirebase(); },
+            finishQuiz: function() {
+                clearInterval(this.state.timer);
+                this.state.isQuizActive = false;
+                let correct = 0; let details = [];
+                // [복구] 상세 채점 결과 저장 (정답률용)
+                let detailLogs = [];
+                this.state.questions.forEach(q => {
+                    const u = (this.state.answers[q.id]||"").toString().replace(/\s+/g,'').trim();
+                    const a = q.answer.toString().replace(/\s+/g,'').trim();
+                    let isC = false;
+                    if (q.type === 'word' || q.type === 'blank') isC = (u.includes(a)||a.includes(u)); else isC = (u === a);
+                    if(isC) correct++; else details.push({q:q.question, u:u||"미입력", a:q.answer, exp:q.explanation});
+                    detailLogs.push({ id: q.id, correct: isC });
+                });
+                this.state.score = correct * 20; this.state.incorrectDetails = details;
+                this.showView('view-results'); this.renderResults(); this.saveToFirebase(detailLogs);
+            },
             renderResults: function() { document.getElementById('result-name').innerText = this.state.student.name; document.getElementById('score-text').innerText = this.state.score; const ctx = document.getElementById('scoreChart').getContext('2d'); if(window.myChart) window.myChart.destroy(); window.myChart = new Chart(ctx, { type:'doughnut', data:{labels:['정답','오답'], datasets:[{data:[this.state.score, 100-this.state.score], backgroundColor:['#d97706','#e5e7eb'], borderWidth:0}]}, options:{cutout:'80%', plugins:{legend:{display:false}}} }); const list = document.getElementById('review-list'); list.innerHTML = this.state.incorrectDetails.length===0 ? '<div class="text-center py-4">만점입니다! 🎉</div>' : this.state.incorrectDetails.map(d => `<div class="border-b pb-3 last:border-0"><p class="font-bold text-stone-800 mb-1">Q. ${d.q}</p><div class="flex gap-2 text-xs mb-2"><span class="text-red-600 bg-red-50 px-2 py-1 rounded">내 답: ${d.u}</span><span class="text-green-600 bg-green-50 px-2 py-1 rounded font-bold">정답: ${d.a}</span></div><p class="text-xs text-stone-500 bg-stone-50 p-2 rounded">${d.exp}</p></div>`).join(''); },
-            saveToFirebase: function() { const status = document.getElementById('submission-status'); if(!db) { status.innerHTML = "⚠️ DB 연결 실패"; return; } const data = { timestamp: firebase.firestore.FieldValue.serverTimestamp(), timeString: new Date().toLocaleString(), class: this.state.student.class, number: this.state.student.number, name: this.state.student.name, score: this.state.score, status: this.state.isTimeOut ? "시간초과" : "완료" }; db.collection("quiz_results").add(data).then(() => { status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold"; status.innerHTML = '<i class="fas fa-check-circle"></i> 제출 완료!'; }).catch((error) => { console.error("Error: ", error); status.className = "bg-red-100 text-red-700 p-3 rounded text-sm mb-6 border border-red-200"; status.innerHTML = '⚠️ 전송 실패. (네트워크 확인)'; }); },
             
+            saveToFirebase: function(detailLogs = []) {
+                const status = document.getElementById('submission-status');
+                if(!db) { status.innerHTML = "⚠️ DB 연결 실패"; return; }
+                const data = { timestamp: firebase.firestore.FieldValue.serverTimestamp(), timeString: new Date().toLocaleString(), class: this.state.student.class, number: this.state.student.number, name: this.state.student.name, score: this.state.score, status: this.state.isTimeOut ? "시간초과" : "완료", details: detailLogs };
+                db.collection("quiz_results").add(data).then(() => { status.className = "bg-green-100 text-green-700 p-3 rounded text-sm mb-6 border border-green-200 font-bold"; status.innerHTML = '<i class="fas fa-check-circle"></i> 제출 완료!'; }).catch((error) => { console.error("Error: ", error); status.className = "bg-red-100 text-red-700 p-3 rounded text-sm mb-6 border border-red-200"; status.innerHTML = '⚠️ 전송 실패. (네트워크 확인)'; });
+            },
+
             toggleTeacherMode: function() {
                 if(this.state.isTeacherMode) { this.closeTeacherMode(); return; }
                 const pw = prompt("교사용 비밀번호:");
-                if(pw === '19960423') { this.state.isTeacherMode=true; this.showView('view-teacher'); this.loadLogs(); }
+                if(pw === TEACHER_PW) { this.state.isTeacherMode=true; this.showView('view-teacher'); this.loadLogs(); }
                 else if(pw!==null) alert("비밀번호 오류");
             },
             closeTeacherMode: function() { this.state.isTeacherMode=false; this.showView('view-login'); },
             showView: function(id) { document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); window.scrollTo(0,0); },
             toggleReview: function() { document.getElementById('review-section').classList.toggle('hidden'); },
             setTeacherTab: function(tab) {
-                ['log','bank','add'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
-                document.getElementById('tab-'+tab).classList.remove('hidden');
+                ['log','bank','add'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden')); document.getElementById('tab-'+tab).classList.remove('hidden');
                 ['log','bank','add'].forEach(t => { const btn = document.getElementById('btn-tab-'+t); if(t===tab) btn.className = "px-5 py-2 rounded-full bg-stone-800 text-white text-sm font-bold shadow transition"; else btn.className = "px-5 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-bold hover:bg-stone-200 shadow transition"; });
                 if(tab === 'log') this.loadServerLogs(); else if (tab === 'add') this.updateNextQuestionNumber(); else this.renderBank();
             },
-            loadServerLogs: function() { if(!db) return; const tbody = document.getElementById('teacher-log-body'); tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">로딩 중...</td></tr>'; db.collection("quiz_results").orderBy("timestamp", "desc").limit(100).get().then((querySnapshot) => { let logs = []; querySnapshot.forEach((doc) => { let d = doc.data(); d.docId = doc.id; logs.push(d); }); this.state.logs = logs; this.renderLogs(); document.getElementById('log-count').innerText = `(최근 ${logs.length}건)`; }); },
+            loadServerLogs: function() { if(!db) return; const tbody = document.getElementById('teacher-log-body'); tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">로딩 중...</td></tr>'; db.collection("quiz_results").orderBy("timestamp", "desc").limit(200).get().then((querySnapshot) => { let logs = []; querySnapshot.forEach((doc) => { let d = doc.data(); d.docId = doc.id; logs.push(d); }); this.state.logs = logs; this.renderLogs(); document.getElementById('log-count').innerText = `(최근 ${logs.length}건)`; }); },
+            
+            // [복구] 정답률 계산
+            calculateStats: function() {
+                const stats = {};
+                if (!this.state.logs) return stats;
+                this.state.logs.forEach(log => {
+                    if (log.details && Array.isArray(log.details)) {
+                        log.details.forEach(item => {
+                            if (!stats[item.id]) stats[item.id] = { total: 0, correct: 0 };
+                            stats[item.id].total++;
+                            if (item.correct) stats[item.id].correct++;
+                        });
+                    }
+                });
+                this.state.questionStats = stats;
+            },
+
             renderLogs: function() { const clsFilter = document.getElementById('filter-class').value; const tbody = document.getElementById('teacher-log-body'); let filtered = this.state.logs; if (clsFilter !== 'all') filtered = filtered.filter(l => l.class === clsFilter); if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">기록 없음</td></tr>'; } else { let html = ''; filtered.forEach((d) => { html += `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-stone-500 text-xs">${d.timeString}</td><td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td><td class="p-3 font-bold text-amber-600">${d.score}</td><td class="p-3 text-xs">${d.status}</td><td class="p-3 text-center"><button onclick="app.deleteLog('${d.docId}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button></td></tr>`; }); tbody.innerHTML = html; } },
             deleteLog: function(docId) { if(confirm("삭제?")) db.collection("quiz_results").doc(docId).delete().then(() => this.loadServerLogs()); },
             downloadExcel: function() { if(!this.state.logs || !this.state.logs.length) { alert("데이터가 없습니다."); return; } let csv = "\uFEFF시간,반,번호,이름,점수,상태\n" + this.state.logs.map(l => `${l.timeString},${l.class},${l.number},${l.name},${l.score},${l.status}`).join("\n"); const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv); link.download = "역사평가_결과.csv"; link.click(); },
             
             renderBank: function() {
+                this.calculateStats(); // 정답률 계산
                 let filtered = [...this.state.allQuestions];
                 const unitFilter = document.getElementById('bank-filter-unit').value; if (unitFilter !== 'all') filtered = filtered.filter(q => (q.unit || "").startsWith(unitFilter));
-                const sortType = document.getElementById('bank-sort').value; if (sortType === 'id') filtered.sort((a, b) => a.id - b.id); else if (sortType === 'unit') filtered.sort((a, b) => (a.unit || "").localeCompare(b.unit || "")); else if (sortType === 'type') filtered.sort((a, b) => a.type.localeCompare(b.type));
+                const sortType = document.getElementById('bank-sort').value; 
+                if (sortType === 'id') filtered.sort((a, b) => a.id - b.id); 
+                else if (sortType === 'unit') filtered.sort((a, b) => (a.unit || "").localeCompare(b.unit || "")); 
+                else if (sortType === 'type') filtered.sort((a, b) => a.type.localeCompare(b.type));
+                // [복구] 정답률 정렬
+                else if (sortType === 'rate_asc' || sortType === 'rate_desc') {
+                    filtered.sort((a, b) => {
+                        const statA = this.state.questionStats[a.id] || { total: 0, correct: 0 };
+                        const rateA = statA.total > 0 ? (statA.correct / statA.total) : 0;
+                        const statB = this.state.questionStats[b.id] || { total: 0, correct: 0 };
+                        const rateB = statB.total > 0 ? (statB.correct / statB.total) : 0;
+                        return sortType === 'rate_asc' ? rateA - rateB : rateB - rateA;
+                    });
+                }
+
                 document.getElementById('total-q-count').innerText = `(${filtered.length}문항)`;
-                document.getElementById('bank-body').innerHTML = filtered.map(q => `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td><td class="p-3"><div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div></td><td class="p-3 text-center"><span class="bg-stone-100 border px-1 rounded text-xs">${{'choice':'객관','word':'단답','order':'순서','ox':'O/X'}[q.type]}</span></td><td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium break-words max-w-xs border-r border-stone-300 cursor-pointer" onclick="app.editQuestion(${q.id})">${q.question}</td><td class="p-3 text-center"><button onclick="app.previewQuestion(${q.id})" class="text-stone-400 hover:text-amber-600"><i class="fas fa-eye"></i></button></td><td class="p-3 text-xs font-bold text-amber-700 col-answer text-center">${q.answer}</td></tr>`).join('');
+                document.getElementById('bank-body').innerHTML = filtered.map(q => {
+                    // 정답률 표시
+                    const stat = this.state.questionStats[q.id] || { total: 0, correct: 0 };
+                    const rate = stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0;
+                    const barColor = rate < 40 ? 'bg-red-500' : (rate < 70 ? 'bg-yellow-500' : 'bg-green-500');
+
+                    return `<tr class="border-b hover:bg-stone-50">
+                        <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
+                        <td class="p-3"><div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div></td>
+                        <td class="p-3 text-center"><span class="bg-stone-100 border px-1 rounded text-xs">${{'choice':'객관','word':'단답','order':'순서','ox':'O/X'}[q.type]}</span></td>
+                        <td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium break-words max-w-xs border-r border-stone-300 cursor-pointer" onclick="app.editQuestion(${q.id})">${q.question}</td>
+                        <td class="p-3 text-center"><button onclick="app.previewQuestion(${q.id})" class="text-stone-400 hover:text-amber-600"><i class="fas fa-eye"></i></button></td>
+                        <td class="p-3 text-xs font-bold text-amber-700 col-answer text-center">${q.answer}</td>
+                        <td class="p-3 text-center w-24">
+                            <div class="text-xs font-bold mb-1">${rate}%</div>
+                            <div class="rate-bar-bg"><div class="rate-bar-fill ${barColor}" style="width:${rate}%"></div></div>
+                            <div class="text-[10px] text-gray-400 mt-1">${stat.correct}/${stat.total}</div>
+                        </td>
+                    </tr>`;
+                }).join('');
             },
             
+            // ... (미리보기, 수정, 추가 기능 등은 기존과 동일하게 유지)
             previewQuestion: function(id) {
-                const q = this.state.allQuestions.find(x => x.id === id);
-                if(!q) return;
+                const q = this.state.allQuestions.find(x => x.id === id); if(!q) return;
                 const tempContainer = document.getElementById('preview-content');
                 tempContainer.innerHTML = `<div class="mb-2"><span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded">${{'choice':'객관식','word':'단답형','order':'순서 맞추기','ox':'O/X'}[q.type]}</span></div>${q.image ? `<img src="${q.image}" class="q-image-thumb" onclick="app.openImageZoom(this.src)">` : ''}<h3 class="text-xl font-bold mb-4">${q.question}</h3><div id="preview-answer-area"></div>`;
                 const area = document.getElementById('preview-answer-area');
-                if(q.type === 'choice') { const grid = document.createElement('div'); grid.className="grid grid-cols-1 gap-2"; q.options.forEach((opt,i) => { const btn = document.createElement('div'); btn.className = "w-full text-left p-3 rounded border border-stone-200 bg-white flex items-center cursor-pointer hover:bg-stone-100"; btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-stone-200 inline-flex items-center justify-center text-xs font-bold mr-3">${i+1}</span> ${opt}`; btn.onclick = function() { Array.from(grid.children).forEach(c => c.className = "w-full text-left p-3 rounded border border-stone-200 bg-white flex items-center cursor-pointer hover:bg-stone-100"); this.className = "w-full text-left p-3 rounded border-2 border-amber-600 bg-amber-600 text-white font-bold shadow-sm flex items-center cursor-pointer"; if(opt === q.answer) alert("정답입니다! (미리보기)"); else alert("오답입니다. (미리보기)"); }; grid.appendChild(btn); }); area.appendChild(grid); } 
+                if(q.type === 'choice') { const grid = document.createElement('div'); grid.className="grid grid-cols-1 gap-2"; q.options.forEach((opt,i) => { const btn = document.createElement('div'); btn.className = "w-full text-left p-3 rounded border border-stone-200 bg-white flex items-center cursor-pointer hover:bg-stone-100"; btn.innerHTML = `<span class="w-6 h-6 rounded-full bg-stone-200 inline-flex items-center justify-center text-xs font-bold mr-3">${i+1}</span> ${opt}`; btn.onclick = function() { Array.from(grid.children).forEach(c => c.className = "w-full text-left p-3 rounded border border-stone-200 bg-white flex items-center cursor-pointer hover:bg-stone-100"); this.className = "w-full text-left p-3 rounded border-2 border-amber-600 bg-amber-600 text-white font-bold shadow-sm flex items-center cursor-pointer"; if(opt === q.answer) alert("정답!"); else alert("오답!"); }; grid.appendChild(btn); }); area.appendChild(grid); } 
                 else if(q.type === 'ox') { area.innerHTML = `<div class="flex gap-4 h-20"><button class="flex-1 ox-btn btn-o" onclick="alert(this.innerText==='${q.answer}'?'정답!':'오답!')">O</button><button class="flex-1 ox-btn btn-x" onclick="alert(this.innerText==='${q.answer}'?'정답!':'오답!')">X</button></div>`; } 
-                else if(q.type === 'order') { area.innerHTML = `<div class="flex flex-wrap gap-2 mb-2 text-xs text-gray-500">* 미리보기에서는 순서 클릭만 가능합니다.</div><div class="flex flex-wrap gap-2">${q.options.map(o=>`<button class="px-2 py-1 bg-white border rounded text-sm hover:bg-amber-100">${o}</button>`).join('')}</div>`; } 
-                else { area.innerHTML = `<input type="text" class="w-full p-3 border-b-2 border-stone-300 text-center" placeholder="정답 입력 (엔터로 확인)" onkeydown="if(event.key==='Enter') alert(this.value.replace(/\\s+/g,'')==='${q.answer.replace(/\s+/g,'')}'?'정답!':'오답!')">`; }
+                else if(q.type === 'order') { area.innerHTML = `<div class="flex flex-wrap gap-2 mb-2 text-xs text-gray-500">* 미리보기: 순서 클릭</div><div class="flex flex-wrap gap-2">${q.options.map(o=>`<button class="px-2 py-1 bg-white border rounded text-sm hover:bg-amber-100">${o}</button>`).join('')}</div>`; } 
+                else { area.innerHTML = `<input type="text" class="w-full p-3 border-b-2 border-stone-300 text-center" placeholder="정답 입력 (엔터)" onkeydown="if(event.key==='Enter') alert(this.value.replace(/\\s+/g,'')==='${q.answer.replace(/\s+/g,'')}'?'정답!':'오답!')">`; }
                 document.getElementById('preview-modal').classList.remove('hidden');
             },
             editQuestion: function(id) {
@@ -581,15 +631,8 @@
                 const newQ = { id: newId, unit: unit, type: t, question: q, options: o.length ? o : null, answer: a, explanation: e || "해설 없음", image: img };
                 db.collection("quiz_questions").doc(String(newId)).set(newQ).then(() => { this.showLoading(false); alert("추가되었습니다."); document.getElementById('new-q-text').value = ''; document.getElementById('new-q-options').value = ''; document.getElementById('new-q-answer').value = ''; document.getElementById('new-q-exp').value = ''; document.getElementById('new-q-image').value = ''; document.getElementById('new-q-image-preview').classList.add('hidden'); document.getElementById('new-q-image-base64').value = ''; this.loadQuestionsFromFirebase(); this.updateNextQuestionNumber(); }).catch(err => { this.showLoading(false); alert("저장 실패: " + err); });
             },
-            resetServerQuestions: function() {
-                if(confirm("모든 문제를 삭제하시겠습니까? (복구 불가)")) { 
-                    this.showLoading(true); db.collection("quiz_questions").get().then(snapshot => { const batch = db.batch(); snapshot.docs.forEach(doc => batch.delete(doc.ref)); return batch.commit(); }).then(() => { this.showLoading(false); alert("초기화되었습니다."); this.state.allQuestions = []; this.renderBank(); }).catch(e => { this.showLoading(false); alert("초기화 실패: " + e); });
-                }
-            },
-            downloadTemplate: function() {
-                const ws_data = [["단원", "유형", "문제", "보기(콤마로 구분)", "정답", "해설"], ["I. 문명의 발생...", "choice", "다음 중...", "보기1, 보기2, 보기3", "보기1", "해설입니다."]];
-                const ws = XLSX.utils.aoa_to_sheet(ws_data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "문제양식"); XLSX.writeFile(wb, "문제업로드_양식.xlsx");
-            },
+            resetServerQuestions: function() { if(confirm("모든 문제를 삭제하시겠습니까?")) { this.showLoading(true); db.collection("quiz_questions").get().then(snapshot => { const batch = db.batch(); snapshot.docs.forEach(doc => batch.delete(doc.ref)); return batch.commit(); }).then(() => { this.showLoading(false); alert("초기화되었습니다."); this.state.allQuestions = []; this.renderBank(); }).catch(e => { this.showLoading(false); alert("초기화 실패: " + e); }); } },
+            downloadTemplate: function() { const ws_data = [["단원", "유형", "문제", "보기(콤마로 구분)", "정답", "해설"], ["I. 문명의 발생...", "choice", "다음 중...", "보기1, 보기2, 보기3", "보기1", "해설입니다."]]; const ws = XLSX.utils.aoa_to_sheet(ws_data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "문제양식"); XLSX.writeFile(wb, "문제업로드_양식.xlsx"); },
             uploadExcel: function() {
                 const fileInput = document.getElementById('excel-file'); if(!fileInput.files.length) { alert("파일을 선택해주세요."); return; } this.showLoading(true); const file = fileInput.files[0]; const reader = new FileReader();
                 reader.onload = (e) => {
