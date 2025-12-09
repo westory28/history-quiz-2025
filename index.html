@@ -37,15 +37,17 @@
         /* 모달 스타일 */
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
-        /* 테이블 구분선 강화 */
+        /* [수정] 테이블 구분선 강화 스타일 */
         .admin-table th, .admin-table td {
             border-bottom: 1px solid #e5e7eb;
             vertical-align: middle;
         }
+        /* 세로 구분선 추가 */
         .admin-table th:not(:last-child), 
         .admin-table td:not(:last-child) {
-            border-right: 1px solid #d6d3d1; /* 진한 회색 선 */
+            border-right: 2px solid #d6d3d1; /* 진한 회색 선으로 구분 강화 */
         }
+        /* 정답 열 강조 */
         .col-answer {
             background-color: #fffbeb; /* 연한 노란색 배경 */
             color: #b45309;
@@ -221,6 +223,7 @@
                     <p class="text-xs text-stone-400">* 문제를 클릭하면 수정할 수 있습니다.</p>
                 </div>
                 <div class="overflow-auto max-h-[500px] border rounded bg-stone-50">
+                    <!-- [수정] 테이블 스타일 적용 (admin-table 클래스) -->
                     <table class="w-full text-sm text-left admin-table table-bordered">
                         <thead class="bg-stone-200 text-stone-700 sticky top-0 font-bold">
                             <tr>
@@ -228,7 +231,7 @@
                                 <th class="p-3 w-32">단원</th>
                                 <th class="p-3 w-20 text-center">유형</th>
                                 <th class="p-3">문제 (클릭하여 수정)</th>
-                                <th class="p-3 w-32 col-answer">정답</th>
+                                <th class="p-3 w-32 col-answer text-center">정답</th>
                             </tr>
                         </thead>
                         <tbody id="bank-body" class="bg-white"></tbody>
@@ -241,7 +244,7 @@
                 <div class="bg-stone-50 p-6 rounded border border-stone-200 max-w-2xl mx-auto">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="font-bold text-xl">새 문제 만들기</h3>
-                        <!-- 다음 문제 번호 표시 -->
+                        <!-- [수정] 다음 문제 번호 표시 (51번부터) -->
                         <span id="next-q-id-display" class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200"></span>
                     </div>
                     <div class="space-y-4">
@@ -560,7 +563,7 @@
                 list.innerHTML = this.state.incorrectDetails.length===0 ? '<div class="text-center py-4">만점입니다! 🎉</div>' : this.state.incorrectDetails.map(d => `<div class="border-b pb-3 last:border-0"><p class="font-bold text-stone-800 mb-1">Q. ${d.q}</p><div class="flex gap-2 text-xs mb-2"><span class="text-red-600 bg-red-50 px-2 py-1 rounded">내 답: ${d.u}</span><span class="text-green-600 bg-green-50 px-2 py-1 rounded font-bold">정답: ${d.a}</span></div><p class="text-xs text-stone-500 bg-stone-50 p-2 rounded">${d.exp}</p></div>`).join('');
             },
 
-            // --- Firebase 저장 ---
+            // --- Firebase 저장 (핵심) ---
             saveToFirebase: function() {
                 const status = document.getElementById('submission-status');
                 if(!db) { status.innerHTML = "⚠️ DB 연결 실패 (설정 필요)"; return; }
@@ -701,6 +704,7 @@
             renderBank: function() {
                 this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
                 document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
+                // [수정] 테이블 HTML 생성 - 구분선 및 정답칸 배경 적용
                 document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
                     `<tr class="border-b hover:bg-stone-50 cursor-pointer" onclick="app.editQuestion(${q.id})">
                         <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
@@ -713,7 +717,7 @@
                         <td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium break-words max-w-xs border-r border-stone-300">
                             ${q.question}
                         </td>
-                        <td class="p-3 text-xs font-bold text-amber-700 col-answer">
+                        <td class="p-3 text-xs font-bold text-amber-700 col-answer text-center">
                             ${q.answer}
                         </td>
                     </tr>`
@@ -727,8 +731,9 @@
             
             updateNextQuestionNumber: function() {
                 // [핵심 수정] 최대값 + 1 로직 (기본 50번 보장)
-                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
-                const nextId = maxId + 1;
+                // 모든 문제 중 가장 큰 ID 찾기
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0); 
+                const nextId = (maxId > 0) ? maxId + 1 : 51;
                 document.getElementById('next-q-id-display').innerText = `현재 ${nextId}번 문제 생성 중`;
             },
             
@@ -747,8 +752,9 @@
                 }
                 
                 // [핵심 수정] 51번부터 번호 매기기 로직
-                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
-                const newId = maxId + 1;
+                // 현재 전체 문제에서 가장 큰 ID + 1
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0);
+                const newId = (maxId > 0) ? maxId + 1 : 51;
 
                 const newQ = { 
                     id: newId, 
