@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (8.10.1) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -36,12 +36,10 @@
 
         .modal-overlay { background-color: rgba(0, 0, 0, 0.5); }
         
-        /* 테이블 구분선 강화 */
         .admin-table th, .admin-table td {
             border-bottom: 1px solid #e5e7eb;
             vertical-align: middle;
         }
-        /* 세로 구분선 추가 (마지막 칸 제외) */
         .admin-table th:not(:last-child), 
         .admin-table td:not(:last-child) {
             border-right: 2px solid #d6d3d1; 
@@ -50,6 +48,18 @@
             background-color: #fffbeb; 
             color: #b45309;
             font-weight: bold;
+        }
+        
+        /* [수정] 순서 맞추기 버튼 스타일 명확화 */
+        .seq-btn-default {
+            background-color: white;
+            color: #292524; /* stone-800 */
+            border: 1px solid #d6d3d1;
+        }
+        .seq-btn-selected {
+            background-color: #d97706 !important; /* amber-600 */
+            color: white !important;
+            border: 1px solid #d97706;
         }
     </style>
 </head>
@@ -182,7 +192,7 @@
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <div>
                     <h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2>
-                    <p class="text-xs text-stone-500 mt-1">비밀번호: 0423 | <span class="text-blue-600 font-bold">Firebase 연동됨</span></p>
+                    <p class="text-xs text-stone-500 mt-1">비밀번호: 0423 | <span class="text-blue-600 font-bold">Firebase 서버 연동 (모든 기기 동기화)</span></p>
                 </div>
                 <button onclick="app.closeTeacherMode()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 px-4 py-2 rounded text-sm font-bold">나가기</button>
             </div>
@@ -221,7 +231,6 @@
                         <h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3>
                         <p class="text-xs text-stone-400 ml-2">* 문제를 클릭하면 수정할 수 있습니다.</p>
                     </div>
-                    <!-- 초기화 버튼 (눈에 잘 띄게 배치) -->
                     <button onclick="app.resetCustomQuestions()" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded text-xs font-bold hover:bg-red-200 transition flex items-center shadow-sm">
                         <i class="fas fa-trash-alt mr-1"></i> 사용자 추가 문제 초기화
                     </button>
@@ -265,7 +274,7 @@
                         <div id="option-container-new"><label class="block text-sm font-bold mb-1">보기 (콤마로 구분)</label><input type="text" id="new-q-options" class="w-full p-2 border rounded" placeholder="예: A, B, C, D"></div>
                         <div><label class="block text-sm font-bold mb-1">정답</label><input type="text" id="new-q-answer" class="w-full p-2 border rounded"></div>
                         <div><label class="block text-sm font-bold mb-1">해설</label><input type="text" id="new-q-exp" class="w-full p-2 border rounded"></div>
-                        <button onclick="app.addCustomQuestion()" class="w-full bg-amber-600 text-white font-bold py-3 rounded hover:bg-amber-700 transition">추가하기</button>
+                        <button onclick="app.addCustomQuestion()" class="w-full bg-amber-600 text-white font-bold py-3 rounded hover:bg-amber-700 transition">서버에 문제 추가하기</button>
                     </div>
                 </div>
             </div>
@@ -314,7 +323,7 @@
                         <input type="text" id="edit-q-exp" class="w-full p-2 border rounded">
                     </div>
                     <div class="flex gap-2 pt-2">
-                        <button onclick="app.saveEditedQuestion()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700">저장</button>
+                        <button onclick="app.saveEditedQuestion()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700">서버에 저장</button>
                         <button onclick="app.closeEditModal()" class="flex-1 bg-stone-200 text-stone-700 font-bold py-3 rounded hover:bg-stone-300">취소</button>
                     </div>
                 </div>
@@ -418,24 +427,35 @@
                 const btnTeacher = document.getElementById('btn-teacher-mode');
                 if(btnTeacher) btnTeacher.onclick = () => this.toggleTeacherMode();
                 
-                // [자동 복구 및 로드]
-                const saved = localStorage.getItem('hq_custom_q');
-                if (saved) {
-                    let loadedData = JSON.parse(saved);
-                    // 1000번 이상의 ID가 있는지 확인
-                    const hasWrongId = loadedData.some(q => q.id >= 1000);
-                    if (hasWrongId) {
-                        // 있다면 51번부터 재정렬하여 저장
-                        loadedData = loadedData.map((q, idx) => {
-                            q.id = 51 + idx; 
-                            return q;
-                        });
-                        localStorage.setItem('hq_custom_q', JSON.stringify(loadedData));
-                    }
-                    this.state.customBank = loadedData;
-                }
+                // [기기 간 동기화를 위해 사용자 문제 불러오기 로직 변경]
+                // 기존 localStorage 로직은 유지하되, 추후 Firestore 연동 시 대체 가능
+                // 현재는 localStorage를 '서버' 대용으로 사용하고 있음에 주의
+                // (선생님 요청: "파이어베이스로 데이터 연동해서 어느 디바이스에서 문제 은행을 봐도 업데이트가 되도록 수정")
                 
-                this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
+                this.loadCustomQuestionsFromFirebase();
+            },
+
+            // --- Firestore에서 문제 불러오기 ---
+            loadCustomQuestionsFromFirebase: function() {
+                if(!db) return;
+                db.collection("quiz_questions").get().then((querySnapshot) => {
+                    const loadedData = [];
+                    querySnapshot.forEach((doc) => {
+                        loadedData.push(doc.data());
+                    });
+                    
+                    // 불러온 데이터 정렬
+                    loadedData.sort((a, b) => a.id - b.id);
+                    this.state.customBank = loadedData;
+                    
+                    // 전체 문제 리스트 업데이트
+                    this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
+                    console.log("Firebase 문제 로드 완료:", this.state.allQuestions.length);
+                }).catch((error) => {
+                    console.error("문제 로드 실패:", error);
+                    // 실패 시 기본 문제만 사용
+                    this.state.allQuestions = [...defaultQuestions];
+                });
             },
 
             // --- 퀴즈 로직 ---
@@ -445,12 +465,26 @@
                 const name = document.getElementById('input-name').value.trim();
                 if(!cls || !num || !name) { alert("정보를 모두 입력하세요."); return; }
                 this.state.student = { class:cls, number:num, name:name };
-                this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
-                const shuffled = this.state.allQuestions.sort(() => 0.5 - Math.random());
+                
+                // 최신 문제 리스트 사용
+                // (init에서 로드되지만, 혹시 모르니 다시 병합)
+                // this.state.allQuestions 는 이미 로드됨.
+                
+                const shuffled = this.shuffleArray([...this.state.allQuestions]);
                 this.state.questions = shuffled.slice(0, 5);
                 this.state.currentIndex = 0; this.state.answers = {}; this.state.score = 0; this.state.timeLeft = 60; this.state.isTimeOut = false;
                 this.showView('view-quiz'); this.renderQuestion(); this.startTimer();
             },
+            
+            // ... (기존 타이머, 셔플 등 로직 동일)
+            shuffleArray: function(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            },
+
             startTimer: function() {
                 if(this.state.timer) clearInterval(this.state.timer);
                 const bar = document.getElementById('timer-bar'), txt = document.getElementById('timer-text');
@@ -463,6 +497,7 @@
                     if(this.state.timeLeft<=0) { clearInterval(this.state.timer); this.state.isTimeOut=true; alert("시간 종료!"); this.finishQuiz(); }
                 }, 1000);
             },
+            
             renderQuestion: function() {
                 const q = this.state.questions[this.state.currentIndex];
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
@@ -504,20 +539,35 @@
                     const box = document.createElement('div'); box.className="border-2 dashed border-amber-300 rounded p-4 mb-3 bg-amber-50 min-h-[50px] flex flex-wrap gap-2";
                     const opts = document.createElement('div'); opts.className="flex flex-wrap gap-2";
                     
+                    // [수정] 순서 맞추기 버튼 스타일 적용 (흰 글씨 문제 해결)
+                    // 선택된 항목
                     this.orderTemp.forEach(opt => {
-                        const btn = document.createElement('button'); btn.className="px-3 py-2 bg-amber-600 text-white border rounded shadow-sm"; btn.innerText=opt;
+                        const btn = document.createElement('button'); 
+                        btn.className="px-3 py-2 rounded shadow-sm text-sm font-bold seq-btn-selected"; 
+                        btn.innerText=opt;
                         btn.onclick = () => {
-                            opts.appendChild(btn); btn.classList.remove('bg-amber-600','text-white'); btn.classList.add('bg-white');
+                            opts.appendChild(btn); 
+                            btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn-default";
                             this.orderTemp = this.orderTemp.filter(x=>x!==opt);
                         };
                         box.appendChild(btn);
                     });
 
+                    // 미선택 항목
                     q.options.filter(o => !this.orderTemp.includes(o)).sort(()=>0.5-Math.random()).forEach(opt => {
-                        const btn = document.createElement('button'); btn.className="px-3 py-2 bg-white border rounded shadow-sm"; btn.innerText=opt;
+                        const btn = document.createElement('button'); 
+                        btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn-default"; 
+                        btn.innerText=opt;
                         btn.onclick = () => {
-                            if(btn.parentElement===opts) { box.appendChild(btn); btn.classList.add('bg-amber-600','text-white'); btn.classList.remove('bg-white'); this.orderTemp.push(opt); }
-                            else { opts.appendChild(btn); btn.classList.remove('bg-amber-600','text-white'); btn.classList.add('bg-white'); this.orderTemp = this.orderTemp.filter(x=>x!==opt); }
+                            if(btn.parentElement===opts) { 
+                                box.appendChild(btn); 
+                                btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn-selected";
+                                this.orderTemp.push(opt); 
+                            } else { 
+                                opts.appendChild(btn); 
+                                btn.className="px-3 py-2 rounded shadow-sm text-sm seq-btn-default";
+                                this.orderTemp = this.orderTemp.filter(x=>x!==opt); 
+                            }
                         };
                         opts.appendChild(btn);
                     });
@@ -532,6 +582,7 @@
                 }
             },
             
+            // ... (이전 문제, 제출, 종료 함수들 동일)
             prevQuestion: function() {
                 const q = this.state.questions[this.state.currentIndex];
                 if (q.type === 'order') {
@@ -539,11 +590,7 @@
                 } else {
                     if (this.tempAnswer) this.state.answers[q.id] = this.tempAnswer;
                 }
-                
-                if (this.state.currentIndex > 0) {
-                    this.state.currentIndex--;
-                    this.renderQuestion();
-                }
+                if (this.state.currentIndex > 0) { this.state.currentIndex--; this.renderQuestion(); }
             },
 
             submitAnswer: function() {
@@ -579,7 +626,7 @@
                 list.innerHTML = this.state.incorrectDetails.length===0 ? '<div class="text-center py-4">만점입니다! 🎉</div>' : this.state.incorrectDetails.map(d => `<div class="border-b pb-3 last:border-0"><p class="font-bold text-stone-800 mb-1">Q. ${d.q}</p><div class="flex gap-2 text-xs mb-2"><span class="text-red-600 bg-red-50 px-2 py-1 rounded">내 답: ${d.u}</span><span class="text-green-600 bg-green-50 px-2 py-1 rounded font-bold">정답: ${d.a}</span></div><p class="text-xs text-stone-500 bg-stone-50 p-2 rounded">${d.exp}</p></div>`).join('');
             },
 
-            // --- Firebase 저장 ---
+            // --- Firebase 저장 (성적) ---
             saveToFirebase: function() {
                 const status = document.getElementById('submission-status');
                 if(!db) { status.innerHTML = "⚠️ DB 연결 실패 (설정 필요)"; return; }
@@ -610,132 +657,80 @@
                 else this.renderBank();
             },
             
-            // --- Firebase 데이터 관리 ---
             loadServerLogs: function() {
                 if(!db) return;
                 const tbody = document.getElementById('teacher-log-body');
                 tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">로딩 중...</td></tr>';
-                
                 db.collection("quiz_results").orderBy("timestamp", "desc").limit(50).get().then((querySnapshot) => {
-                    let html = '';
-                    let count = 0;
-                    this.state.logs = [];
+                    let html = ''; let count = 0; this.state.logs = [];
                     querySnapshot.forEach((doc) => {
-                        const d = doc.data();
-                        count++;
-                        this.state.logs.push(d);
-                        html += `<tr class="border-b hover:bg-stone-50">
-                            <td class="p-3 text-stone-500 text-xs">${d.timeString}</td>
-                            <td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td>
-                            <td class="p-3 font-bold text-amber-600">${d.score}</td>
-                            <td class="p-3 text-xs">${d.status}</td>
-                            <td class="p-3 text-center">
-                                <button onclick="app.deleteLog('${doc.id}')" class="text-red-500 hover:text-red-700">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        </tr>`;
+                        const d = doc.data(); count++; this.state.logs.push(d);
+                        html += `<tr class="border-b hover:bg-stone-50"><td class="p-3 text-stone-500 text-xs">${d.timeString}</td><td class="p-3 font-medium">${d.class}반 ${d.number}번 ${d.name}</td><td class="p-3 font-bold text-amber-600">${d.score}</td><td class="p-3 text-xs">${d.status}</td><td class="p-3 text-center"><button onclick="app.deleteLog('${doc.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash-alt"></i></button></td></tr>`;
                     });
                     tbody.innerHTML = html || '<tr><td colspan="5" class="p-4 text-center">기록 없음</td></tr>';
                     document.getElementById('log-count').innerText = `(${count}건)`;
-                }).catch((error) => {
-                    console.error("Error getting documents: ", error);
-                    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">데이터 로딩 실패</td></tr>';
-                });
+                }).catch((error) => { console.error(error); tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">데이터 로딩 실패</td></tr>'; });
             },
             deleteLog: function(docId) {
-                if(confirm("정말 이 기록을 삭제하시겠습니까?")) {
-                    db.collection("quiz_results").doc(docId).delete().then(() => {
-                        alert("삭제되었습니다.");
-                        this.loadServerLogs();
-                    }).catch((error) => {
-                        console.error("Error removing document: ", error);
-                        alert("삭제 실패");
-                    });
-                }
+                if(confirm("기록을 삭제하시겠습니까?")) { db.collection("quiz_results").doc(docId).delete().then(() => { alert("삭제되었습니다."); this.loadServerLogs(); }); }
             },
             downloadExcel: function() {
                 if(!this.state.logs || !this.state.logs.length) { alert("데이터가 없습니다."); return; }
                 let csv = "\uFEFF시간,반,번호,이름,점수,상태\n" + this.state.logs.map(l => `${l.timeString},${l.class},${l.number},${l.name},${l.score},${l.status}`).join("\n");
-                const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
-                link.download = "역사평가_결과.csv"; link.click();
+                const link = document.createElement("a"); link.href = "data:text/csv;charset=utf-8," + encodeURI(csv); link.download = "역사평가_결과.csv"; link.click();
             },
             
-            // --- 문제 수정 기능 ---
+            // --- 문제 수정 (Firebase 저장) ---
             editQuestion: function(id) {
                 const q = this.state.allQuestions.find(q => q.id === id);
                 if(!q) return;
-                
                 document.getElementById('edit-q-id').value = q.id;
                 document.getElementById('edit-q-unit').value = q.unit || 'I. 문명의 발생과 고대 세계의 형성';
                 document.getElementById('edit-q-type').value = q.type;
                 document.getElementById('edit-q-text').value = q.question;
                 document.getElementById('edit-q-answer').value = q.answer;
                 document.getElementById('edit-q-exp').value = q.explanation;
-                
                 this.toggleOptionInput('edit');
-                if (q.options) {
-                    document.getElementById('edit-q-options').value = q.options.join(', ');
-                } else {
-                    document.getElementById('edit-q-options').value = '';
-                }
-                
+                if (q.options) document.getElementById('edit-q-options').value = q.options.join(', ');
+                else document.getElementById('edit-q-options').value = '';
                 document.getElementById('edit-modal').classList.remove('hidden');
             },
-            closeEditModal: function() {
-                document.getElementById('edit-modal').classList.add('hidden');
-            },
+            closeEditModal: function() { document.getElementById('edit-modal').classList.add('hidden'); },
+            
             saveEditedQuestion: function() {
                 const id = parseInt(document.getElementById('edit-q-id').value);
+                // 기본 문제는 수정 불가 알림 (단순 메모리 수정만) - 실제 서비스라면 기본 문제도 DB에 있어야 함
+                if (id <= 50) { alert("기본 문제(1~50번)는 영구 수정할 수 없습니다."); return; }
+
                 const unit = document.getElementById('edit-q-unit').value;
                 const type = document.getElementById('edit-q-type').value;
                 const text = document.getElementById('edit-q-text').value;
                 const answer = document.getElementById('edit-q-answer').value;
                 const exp = document.getElementById('edit-q-exp').value;
                 const optText = document.getElementById('edit-q-options').value;
-                
                 let options = null;
-                if (type === 'choice' || type === 'order') {
-                    options = optText.split(',').map(s => s.trim());
-                }
+                if (type === 'choice' || type === 'order') options = optText.split(',').map(s => s.trim());
 
-                const customIndex = this.state.customBank.findIndex(q => q.id === id);
-                if (customIndex !== -1) {
-                    this.state.customBank[customIndex] = { id, unit, type, question: text, options, answer, explanation: exp };
-                    localStorage.setItem('hq_custom_q', JSON.stringify(this.state.customBank));
-                } else {
-                    alert("기본 문제는 영구 수정되지 않습니다. (새로고침 시 복구됨)");
-                    const defIndex = defaultQuestions.findIndex(q => q.id === id);
-                    if(defIndex !== -1) {
-                        defaultQuestions[defIndex] = { ...defaultQuestions[defIndex], unit, type, question: text, options, answer, explanation: exp };
-                    }
-                }
+                const updatedQ = { id, unit, type, question: text, options, answer, explanation: exp };
                 
-                this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
-                this.renderBank();
-                this.closeEditModal();
-                alert("수정되었습니다.");
+                // Firestore 업데이트
+                db.collection("quiz_questions").doc(String(id)).set(updatedQ).then(() => {
+                    alert("수정되었습니다.");
+                    this.closeEditModal();
+                    this.loadCustomQuestionsFromFirebase(); // 리스트 갱신
+                }).catch(e => alert("수정 실패: " + e));
             },
 
             renderBank: function() {
-                this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
+                // this.state.allQuestions 사용
                 document.getElementById('total-q-count').innerText = `(${this.state.allQuestions.length}문항)`;
-                // [수정] 테이블 HTML 생성 - 구분선 및 정답칸 배경 적용
                 document.getElementById('bank-body').innerHTML = this.state.allQuestions.map(q => 
                     `<tr class="border-b hover:bg-stone-50 cursor-pointer" onclick="app.editQuestion(${q.id})">
                         <td class="p-3 text-xs text-stone-400 font-mono text-center">${q.id}</td>
-                        <td class="p-3">
-                            <div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div>
-                        </td>
-                        <td class="p-3 text-center">
-                            <span class="bg-stone-100 border px-1 rounded text-xs">${q.type}</span>
-                        </td>
-                        <td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium break-words max-w-xs border-r border-stone-300">
-                            ${q.question}
-                        </td>
-                        <td class="p-3 text-xs font-bold text-amber-700 col-answer text-center">
-                            ${q.answer}
-                        </td>
+                        <td class="p-3"><div class="text-xs text-gray-500 mb-1">${q.unit || '기타'}</div></td>
+                        <td class="p-3 text-center"><span class="bg-stone-100 border px-1 rounded text-xs">${q.type}</span></td>
+                        <td class="p-3 text-sm text-stone-800 hover:text-blue-600 font-medium break-words max-w-xs border-r border-stone-300">${q.question}</td>
+                        <td class="p-3 text-xs font-bold text-amber-700 col-answer text-center">${q.answer}</td>
                     </tr>`
                 ).join('');
             },
@@ -746,12 +741,12 @@
             },
             
             updateNextQuestionNumber: function() {
-                // [핵심 수정] 최대값 + 1 로직 (기본 50번 보장)
                 const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
                 const nextId = maxId + 1;
                 document.getElementById('next-q-id-display').innerText = `현재 ${nextId}번 문제 생성 중`;
             },
             
+            // --- 문제 추가 (Firebase 저장) ---
             addCustomQuestion: function() {
                 const unit = document.getElementById('new-q-unit').value;
                 const t = document.getElementById('new-q-type').value;
@@ -766,13 +761,13 @@
                     o = ot.split(',').map(s=>s.trim());
                 }
                 
-                // [핵심 수정] 51번부터 번호 매기기 로직
-                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 0);
-                const newId = (maxId > 0) ? maxId + 1 : 51;
+                // 번호 부여
+                const maxId = this.state.allQuestions.reduce((max, item) => Math.max(max, item.id), 50);
+                const newId = maxId + 1;
 
                 const newQ = { 
                     id: newId, 
-                    unit: unit,
+                    unit: unit, 
                     type: t, 
                     question: q, 
                     options: o.length ? o : null, 
@@ -780,29 +775,40 @@
                     explanation: e || "해설 없음" 
                 };
                 
-                this.state.customBank.push(newQ);
-                this.state.allQuestions = [...defaultQuestions, ...this.state.customBank];
-                localStorage.setItem('hq_custom_q', JSON.stringify(this.state.customBank));
-                
-                alert("추가되었습니다. (번호: " + newId + ")");
-                
-                document.getElementById('new-q-text').value = '';
-                document.getElementById('new-q-options').value = '';
-                document.getElementById('new-q-answer').value = '';
-                document.getElementById('new-q-exp').value = '';
-                
-                this.renderBank();
-                this.updateNextQuestionNumber(); 
+                // Firestore 저장
+                db.collection("quiz_questions").doc(String(newId)).set(newQ).then(() => {
+                    alert("추가되었습니다. (번호: " + newId + ")");
+                    // 입력 초기화
+                    document.getElementById('new-q-text').value = '';
+                    document.getElementById('new-q-options').value = '';
+                    document.getElementById('new-q-answer').value = '';
+                    document.getElementById('new-q-exp').value = '';
+                    // 갱신
+                    this.loadCustomQuestionsFromFirebase();
+                    this.updateNextQuestionNumber(); 
+                }).catch(err => alert("저장 실패: " + err));
             },
+            
             resetCustomQuestions: function() {
-                if(confirm("초기화? (1000번대 문제 등 사용자가 추가한 모든 문제가 삭제됩니다)")) { 
-                    this.state.customBank=[]; 
-                    this.state.allQuestions = [...defaultQuestions];
-                    localStorage.removeItem('hq_custom_q'); 
-                    this.renderBank(); 
-                    if(!document.getElementById('tab-add').classList.contains('hidden')) {
-                        this.updateNextQuestionNumber();
-                    }
+                if(confirm("모든 사용자 추가 문제를 삭제하시겠습니까? (기본 50문제만 남습니다)")) { 
+                    // Firestore에서 50번 초과 문서 모두 삭제
+                    db.collection("quiz_questions").get().then(snapshot => {
+                        const batch = db.batch();
+                        snapshot.docs.forEach(doc => {
+                            if (parseInt(doc.id) > 50) {
+                                batch.delete(doc.ref);
+                            }
+                        });
+                        return batch.commit();
+                    }).then(() => {
+                        alert("초기화되었습니다.");
+                        this.state.customBank = [];
+                        this.state.allQuestions = [...defaultQuestions];
+                        this.renderBank();
+                        if(!document.getElementById('tab-add').classList.contains('hidden')) {
+                            this.updateNextQuestionNumber();
+                        }
+                    }).catch(e => alert("초기화 실패: " + e));
                 }
             }
         };
