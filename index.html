@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>용신중학교 역사교사 방재석</title>
     
-    <!-- 필수 라이브러리 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- 엑셀 처리를 위한 SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -107,7 +104,6 @@
 
     <main class="flex-grow container mx-auto px-4 py-6">
         
-        <!-- 1. 로그인 -->
         <section id="view-login" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg fade-in mt-8 border-t-4 border-amber-500">
             <div class="text-center mb-8">
                 <span class="bg-amber-100 text-amber-900 text-sm font-bold px-3 py-1 rounded-full">용신중학교 2학년 2학기 역사1</span>
@@ -137,7 +133,6 @@
             </div>
         </section>
 
-        <!-- 2. 퀴즈 화면 -->
         <section id="view-quiz" class="hidden max-w-2xl mx-auto fade-in">
             <div class="bg-white rounded-lg shadow-sm mb-6 sticky top-20 z-30 overflow-hidden border border-stone-200">
                 <div class="flex justify-between items-center px-4 py-2 bg-stone-50 border-b border-stone-100">
@@ -166,7 +161,6 @@
             </div>
         </section>
 
-        <!-- 3. 결과 화면 -->
         <section id="view-results" class="hidden max-w-lg mx-auto fade-in mt-6">
             <div class="bg-white p-8 rounded-xl shadow-xl text-center border-t-8 border-amber-500">
                 <h2 class="text-3xl font-bold serif mb-2 text-stone-800">평가 종료</h2>
@@ -187,7 +181,6 @@
             </div>
         </section>
 
-        <!-- 4. 교사 대시보드 -->
         <section id="view-teacher" class="hidden max-w-6xl mx-auto bg-white p-6 rounded shadow-xl mt-4 border border-stone-300 relative">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <div><h2 class="font-bold text-2xl text-stone-800"><i class="fas fa-chalkboard-teacher text-amber-600 mr-2"></i>교사 대시보드</h2><p class="text-xs text-stone-500 mt-1">비밀번호: 19960423 | <span class="text-blue-600 font-bold">Firebase 연동됨</span></p></div>
@@ -199,7 +192,6 @@
                 <button onclick="app.setTeacherTab('add')" id="btn-tab-add" class="px-5 py-2 rounded-full bg-stone-100 text-stone-600 text-sm font-bold hover:bg-stone-200 shadow transition"><i class="fas fa-plus-circle mr-1"></i> 문제 추가/업로드</button>
             </div>
 
-            <!-- 탭: 기록 (페이지네이션 추가) -->
             <div id="tab-log">
                 <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
                     <h3 class="font-bold text-lg flex items-center">제출 현황 <span id="log-count" class="text-sm font-normal text-stone-500 ml-2">(로딩중...)</span></h3>
@@ -217,7 +209,6 @@
                 <div id="pagination-controls" class="pagination flex justify-center gap-2 mt-4"></div>
             </div>
 
-            <!-- 탭: 문제 은행 -->
             <div id="tab-bank" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-4 bg-stone-50 p-3 rounded border border-stone-200 gap-3">
                     <div class="flex items-center gap-2"><h3 class="font-bold text-lg">전체 문제 리스트 <span id="total-q-count" class="text-sm text-stone-500"></span></h3></div>
@@ -247,7 +238,6 @@
                 </div>
             </div>
 
-            <!-- 탭: 문제 추가 -->
             <div id="tab-add" class="hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-stone-50 p-6 rounded border border-stone-200">
@@ -280,7 +270,6 @@
             </div>
         </section>
 
-        <!-- 학생 상세 정보 모달 -->
         <div id="student-detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
             <div class="modal-overlay absolute inset-0" onclick="document.getElementById('student-detail-modal').classList.add('hidden')"></div>
             <div class="bg-white p-8 rounded-lg shadow-2xl z-10 w-full max-w-2xl mx-4 border-t-8 border-blue-500 max-h-[80vh] overflow-y-auto">
@@ -290,7 +279,6 @@
             </div>
         </div>
 
-        <!-- 문제 수정 모달 -->
         <div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
             <div class="modal-overlay absolute inset-0" onclick="app.closeEditModal()"></div>
             <div class="bg-white p-6 rounded-lg shadow-xl z-10 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
@@ -309,7 +297,6 @@
             </div>
         </div>
 
-        <!-- 미리보기 모달 -->
         <div id="preview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
             <div class="modal-overlay absolute inset-0" onclick="document.getElementById('preview-modal').classList.add('hidden')"></div>
             <div class="bg-white p-8 rounded-lg shadow-2xl z-10 w-full max-w-lg mx-4 border-t-8 border-amber-500 max-h-[80vh] overflow-y-auto">
@@ -371,7 +358,8 @@
                     const snapshot = await logsRef.where("class", "==", cls).where("number", "==", num).where("name", "==", name).get();
                     let recentSubmission = null;
                     snapshot.forEach(doc => { const data = doc.data(); if (data.timestamp) { const date = data.timestamp.toDate(); if (!recentSubmission || date > recentSubmission) recentSubmission = date; } });
-                    if (recentSubmission) { const diffMins = (new Date() - recentSubmission) / (1000 * 60); if (diffMins < 5) { this.showLoading(false); alert(`이미 제출하셨습니다. ${Math.ceil(5 - diffMins)}분 뒤에 시도하세요.`); return; } }
+                    // [수정] 10분 제한으로 변경
+                    if (recentSubmission) { const diffMins = (new Date() - recentSubmission) / (1000 * 60); if (diffMins < 10) { this.showLoading(false); alert(`이미 제출하셨습니다. ${Math.ceil(10 - diffMins)}분 뒤에 시도하세요.`); return; } }
                 } catch(e) {}
                 this.showLoading(false);
                 this.state.student = { class:cls, number:num, name:name };
@@ -389,16 +377,17 @@
             shuffleArray: function(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; },
             startTimer: function() { if(this.state.timer) clearInterval(this.state.timer); const bar = document.getElementById('timer-bar'), txt = document.getElementById('timer-text'); bar.style.width='100%'; txt.innerText='60초'; this.state.timer = setInterval(() => { this.state.timeLeft--; txt.innerText = this.state.timeLeft + '초'; bar.style.width = (this.state.timeLeft/60)*100 + '%'; if(this.state.timeLeft<=10) { bar.classList.add('timer-urgent'); txt.classList.add('animate-pulse'); } if(this.state.timeLeft<=0) { clearInterval(this.state.timer); this.state.isTimeOut=true; alert("종료"); this.finishQuiz(); } }, 1000); },
             
-            // [수정] 보기 선택 시 시각적 반응 추가
             renderQuestion: function() {
                 const q = this.state.questions[this.state.currentIndex];
+                // [중요] 상태값을 우선적으로 로드하여 렌더링 시 선택이 풀리지 않게 함
+                this.tempAnswer = this.state.answers[q.id] || null;
+
                 document.getElementById('quiz-progress-text').innerText = `${this.state.currentIndex+1}/5`;
                 document.getElementById('question-badge').innerText = {'choice':'객관식','blank':'단답','word':'단답','order':'순서','ox':'O/X'}[q.type];
                 document.getElementById('student-question-unit').innerText = q.unit || "기타";
                 const img = document.getElementById('question-image'); if(q.image) { img.src=q.image; img.parentNode.classList.remove('hidden'); } else img.parentNode.classList.add('hidden');
                 document.getElementById('question-text').innerText = q.question;
                 const area = document.getElementById('answer-area'); area.innerHTML = ''; 
-                this.tempAnswer = this.state.answers[q.id] || null;
 
                 document.getElementById('btn-prev').classList.toggle('hidden', this.state.currentIndex === 0);
                 document.getElementById('btn-next').className = this.state.currentIndex === 0 ? "w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md" : "w-2/3 bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-700 transition shadow-md";
@@ -411,8 +400,9 @@
                         btn.className = `choice-btn ${isSelected ? 'selected' : ''}`;
                         btn.innerHTML = `<span class="choice-badge">${i+1}</span> ${opt}`; 
                         btn.onclick = () => { 
-                            this.tempAnswer = opt; 
-                            this.renderQuestion(); // 재렌더링으로 선택 표시 
+                            // [수정] 클릭 즉시 메인 상태(state)에 저장하여 리렌더링 시 값이 유지되도록 함
+                            this.state.answers[q.id] = opt; 
+                            this.renderQuestion(); 
                         }; 
                         grid.appendChild(btn); 
                     }); 
@@ -421,29 +411,32 @@
                 else if(q.type === 'ox') { 
                     const box = document.createElement('div'); box.className="flex gap-4 h-40"; 
                     const btnO = document.createElement('button'); btnO.className=`flex-1 ox-btn btn-o ${this.tempAnswer==='O'?'selected':''}`; btnO.innerText="O"; 
-                    btnO.onclick=()=>{this.tempAnswer='O'; this.renderQuestion();}; 
+                    // [수정] OX도 즉시 저장
+                    btnO.onclick=()=>{ this.state.answers[q.id]='O'; this.renderQuestion(); }; 
                     const btnX = document.createElement('button'); btnX.className=`flex-1 ox-btn btn-x ${this.tempAnswer==='X'?'selected':''}`; btnX.innerText="X"; 
-                    btnX.onclick=()=>{this.tempAnswer='X'; this.renderQuestion();}; 
+                    // [수정] OX도 즉시 저장
+                    btnX.onclick=()=>{ this.state.answers[q.id]='X'; this.renderQuestion(); }; 
                     box.append(btnO,btnX); area.appendChild(box); 
                 }
                 else if(q.type === 'order') { 
                     this.orderTemp = this.tempAnswer ? this.tempAnswer.split('-') : []; 
                     const box = document.createElement('div'); box.className="border-2 dashed border-amber-300 rounded p-4 mb-3 bg-amber-50 min-h-[50px] flex flex-wrap gap-2"; 
                     const opts = document.createElement('div'); opts.className="flex flex-wrap gap-2"; 
-                    this.orderTemp.forEach(opt => { const btn = document.createElement('button'); btn.className="seq-btn seq-btn-selected"; btn.innerText=opt; btn.onclick = () => { this.orderTemp = this.orderTemp.filter(x=>x!==opt); this.renderQuestion(); }; box.appendChild(btn); }); 
-                    q.options.filter(o => !this.orderTemp.includes(o)).forEach(opt => { const btn = document.createElement('button'); btn.className="seq-btn seq-btn-default"; btn.innerText=opt; btn.onclick = () => { this.orderTemp.push(opt); this.tempAnswer = this.orderTemp.join('-'); this.renderQuestion(); }; opts.appendChild(btn); }); 
+                    this.orderTemp.forEach(opt => { const btn = document.createElement('button'); btn.className="seq-btn seq-btn-selected"; btn.innerText=opt; btn.onclick = () => { this.orderTemp = this.orderTemp.filter(x=>x!==opt); this.state.answers[q.id] = this.orderTemp.join('-'); this.renderQuestion(); }; box.appendChild(btn); }); 
+                    q.options.filter(o => !this.orderTemp.includes(o)).forEach(opt => { const btn = document.createElement('button'); btn.className="seq-btn seq-btn-default"; btn.innerText=opt; btn.onclick = () => { this.orderTemp.push(opt); this.state.answers[q.id] = this.orderTemp.join('-'); this.renderQuestion(); }; opts.appendChild(btn); }); 
                     area.append(box, opts); 
                 } 
                 else { 
                     const inp = document.createElement('input'); inp.type="text"; inp.className="w-full p-4 border-b-2 border-stone-300 focus:border-amber-500 text-center text-lg outline-none"; inp.placeholder="정답 입력"; 
                     if(this.tempAnswer) inp.value = this.tempAnswer; 
-                    inp.oninput = (e) => this.tempAnswer=e.target.value; 
+                    // 단답형은 입력할 때마다 상태 저장 (엔터 안 쳐도 저장되게)
+                    inp.oninput = (e) => { this.tempAnswer=e.target.value; this.state.answers[q.id] = e.target.value; }; 
                     inp.onkeydown = (e) => { if(e.key==='Enter') this.submitAnswer(); }; 
                     area.appendChild(inp); 
                 }
             },
-            prevQuestion: function() { const q = this.state.questions[this.state.currentIndex]; if (q.type === 'order' && this.orderTemp) this.state.answers[q.id] = this.orderTemp.join('-'); else if (this.tempAnswer) this.state.answers[q.id] = this.tempAnswer; if (this.state.currentIndex > 0) { this.state.currentIndex--; this.renderQuestion(); } },
-            submitAnswer: function() { const q = this.state.questions[this.state.currentIndex]; let ans = this.tempAnswer; if(q.type==='order') { if(!this.orderTemp || this.orderTemp.length !== q.options.length) { alert("순서를 완성하세요"); return; } ans = this.orderTemp.join('-'); } else if(!ans) { alert("정답을 입력하세요"); return; } this.state.answers[q.id] = ans; if(this.state.currentIndex < 4) { this.state.currentIndex++; this.renderQuestion(); } else this.finishQuiz(); },
+            prevQuestion: function() { const q = this.state.questions[this.state.currentIndex]; if (this.state.currentIndex > 0) { this.state.currentIndex--; this.renderQuestion(); } },
+            submitAnswer: function() { const q = this.state.questions[this.state.currentIndex]; let ans = this.state.answers[q.id]; if(q.type==='order') { if(!ans || ans.split('-').length !== q.options.length) { alert("순서를 완성하세요"); return; } } else if(!ans) { alert("정답을 입력하세요"); return; } if(this.state.currentIndex < 4) { this.state.currentIndex++; this.renderQuestion(); } else this.finishQuiz(); },
             finishQuiz: function() {
                 clearInterval(this.state.timer);
                 this.state.isQuizActive = false;
